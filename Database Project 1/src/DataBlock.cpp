@@ -9,14 +9,20 @@ using namespace std;
 #define NULL nullptr
 
 
+// struct key_info{
+//     value key 
+//     vector <RecordRow> listOfrecordswithssamekey
+// }
 
 class DataBlock{
         int max_records;
         Record *arr; 
+        DataBlock *nextBlk;
     public:
-        DataBlock(int size){
-        this->max_records = (size - sizeof(arr))/sizeof(Record*);
-        this->arr =  (Record*)malloc(sizeof(Record)*max_records);
+        DataBlock(size_t blockSize){
+            this->max_records = (blockSize- sizeof(nextBlk)-sizeof(arr))/sizeof(Record);
+            this->arr =  (Record*) malloc(max_records);
+            this->nextBlk = nullptr;
         };
 
         // READ Operation: Get a list of pointers to records based on one key
@@ -70,6 +76,7 @@ class DataBlock{
                 r.teamID = -1;
             }
         }
+
 
         
 
