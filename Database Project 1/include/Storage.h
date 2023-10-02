@@ -2,11 +2,17 @@
 #define STORAGE_H
 #include <tuple>
 #include <vector>
+#include <list>
 using namespace std;
+
+struct RecordRow{
+    void *blockAddress;
+    short int offsetWithinBlock;
+};
 
 //Defining structure for a record 
 struct Record{
-    RecordRow recordAddress;
+    // RecordRow recordAddress;
     int gameDate;
     short teamID;
     short homePts;
@@ -17,11 +23,6 @@ struct Record{
     short REB_home;
     bool HOME_TEAM_WINS;
 
-};
-
-class RecordRow{
-    void *blockAddress;
-    short int offsetWithinBlock;
 };
 
 
@@ -37,19 +38,27 @@ class DataBlock{
 
 };
 
+
+
 class Storage{
-    private :
-     
     public:
         Storage(size_t StorageSize, size_t blockSize);
         bool assignBlock();
 
+    private :
+        char *blockPtr;
+        char *StoragePtr;
+        size_t blockSize;
+        size_t StorageSize; // max size of storage 
+        size_t curNumberOFRecords; // number of records stored in storage
+        size_t UsedBlocks; // number of of blocks used
+        vector<DataBlock> blocklist;
+
+        int assignedBlocks;
+        int freeBlocks;
 
 
 };
-
-
-
 
 
 #endif 
