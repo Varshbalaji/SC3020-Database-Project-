@@ -66,10 +66,6 @@ bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
     }
 }
 
-RecordAddress Storage::getRecord(){
-
-    
-};
 
 Storage::~Storage()  // Destructor method
 {

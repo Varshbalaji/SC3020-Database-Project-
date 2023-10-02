@@ -28,11 +28,10 @@ struct Record{
 class Storage
 {
     public:
-        Storage(unsigned int StorageSize, unsigned int BlockSize);
+        Storage(unsigned int StoragePoolSize, unsigned int BlockSize);
         virtual ~Storage();
-        RecordAddress insertRecord(unsigned int recordSize, void *Record);
+        RecordAddress insertRecord(unsigned int recordSize, void *record);
         bool deleteRecord(RecordAddress address, unsigned int recordSize);
-        RecordAddress getRecord();
 
         unsigned int getBlockSize(){
             return BlockSize;
@@ -48,7 +47,7 @@ class Storage
         unsigned int getMaxNumberOfBlockss(){
             return MaxNumberOfBlocks;
         }
-        unsigned int getUsedBlocks(){
+        unsigned int getUsedBlockss(){
             if (CurrentFreeBlockOffset == 0) {
                 return CurrentFreeBlockNumber - 1;
             }
@@ -57,35 +56,17 @@ class Storage
             }
         }
         
-
     private:
-
-
-};
-
-
-
-
-class Storage{
-    public:
-        Storage(size_t StorageSize, size_t blockSize);
-        bool assignBlock();
-
-    private :
-        char *blockPtr;
-
         char *StoragePtr;
         char *blockRecordAddress;
 
-        unsigned int  BlockSize; // size of each block
-        unsigned int StorageSize; // max memory size of Storage  
-        unsigned int CurrentFreeBlockNumber; //Current Free Block 
-        unsigned int  CurrentFreeBlockOffset; // Current free space within a Block 
-        unsigned int  TotalNumberOfRecords; // Total number of records in the Storage 
-        unsigned int  MaxNumberOfBlocks; // maximum number of blocks in the Storage 
+        unsigned int BlockSize; // size of each block
+        unsigned int StorageSize; // max memory size of Storage  pool
+        unsigned int CurrentFreeBlockNumber;
+        unsigned int CurrentFreeBlockOffset;
+        unsigned int TotalNumberOfRecords;
+        unsigned int MaxNumberOfBlocks;
 
 };
 
-
-
-#endif 
+#endif // STORAGEPOOL_H
