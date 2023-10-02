@@ -7,12 +7,12 @@ using namespace std;
 //Defining structure for a record 
 struct Record{
     
-    char gameDate[10];
-    int teamID;
+    int gameDate;
+    short teamID;
     short homePts;
-    float FG_PCT_home;
-    float FT_PCT_home;
-    float FG3_PCT_home;
+    short FG_PCT_home;
+    short FT_PCT_home;
+    short FG3_PCT_home;
     short AST_home;
     short REB_home;
     short HOME_TEAM_WINS;
