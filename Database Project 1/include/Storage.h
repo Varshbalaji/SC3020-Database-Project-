@@ -40,6 +40,7 @@ class DataBlock{
 
 
 
+
 class Storage{
     public:
         Storage(size_t StorageSize, size_t blockSize);
