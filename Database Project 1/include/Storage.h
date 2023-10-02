@@ -57,7 +57,23 @@ class Storage
             }
         }
         
+
     private:
+
+
+};
+
+
+
+
+class Storage{
+    public:
+        Storage(size_t StorageSize, size_t blockSize);
+        bool assignBlock();
+
+    private :
+        char *blockPtr;
+
         char *StoragePtr;
         char *blockRecordAddress;
 
