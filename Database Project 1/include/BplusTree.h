@@ -6,8 +6,7 @@ struct BTreeNode{
 
 class Btree{
         int degree;
-        BTreeNode* pointers;
-        short* keys;
+        BTreeNode* root;
         public:
             Btree(int n);
 

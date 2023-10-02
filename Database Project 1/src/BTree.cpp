@@ -10,6 +10,10 @@
 using namespace std;
 
 Btree::Btree(int n){
-    this->pointers =(BTreeNode*)(malloc(n*sizeof(BTreeNode)));
-    this->keys =(short*)(malloc(n*sizeof(short)));
+    this->root = (BTreeNode*)malloc(sizeof(BTreeNode*));
+    this->degree = n;
 };
+
+//search
+//Insert
+//Delete
