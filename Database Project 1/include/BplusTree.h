@@ -7,7 +7,6 @@ struct BTreeNode{
 class Btree{
         int degree;
         BTreeNode* root;
-        short* keys;
         public:
             Btree(int n);
 
