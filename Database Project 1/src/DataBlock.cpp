@@ -10,14 +10,12 @@ using namespace std;
 
 
 class DataBlock{
-        int size;
         int max_records;
         Record *arr; 
     public:
         DataBlock(int size){
-        this->size = size;
-        this->max_records = (size-sizeof(size)-sizeof(arr))/sizeof(Record);
-        this->arr =  (Record*)malloc(max_records);
+        this->max_records = (size - sizeof(arr))/sizeof(Record*);
+        this->arr =  (Record*)malloc(sizeof(Record)*max_records);
         };
         
         //READ

@@ -5,6 +5,10 @@
 using namespace std;
 
 //Defining structure for a record 
+struct RecordRow{
+    void *blockAddress;
+    short int offsetWithinBlock;
+};
 struct Record{
     RecordRow recordAddress;
     int gameDate;
@@ -19,10 +23,7 @@ struct Record{
 
 };
 
-class RecordRow{
-    void *blockAddress;
-    short int offsetWithinBlock;
-};
+
 
 
 
