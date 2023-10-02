@@ -5,27 +5,11 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include "BplusTree.h"
+
 using namespace std;
 
-
-
-class BtreeNode{
-        int n;
-        bool leaf;
-        int* keys;
-        BtreeNode **child;
-        Record *arr; 
-    public:
-        BtreeNode(int size){
-        this->size = size;
-        this->max_records = (size-sizeof(size)-sizeof(arr))/sizeof(Record);
-        this->arr =  (Record*)malloc(max_records);
-        };
-        
-        //READ
-        //INSERT
-        //DELETE
-
-        
-
+Btree::Btree(int n){
+    this->pointers =(BTreeNode*)(malloc(n*sizeof(BTreeNode)));
+    this->keys =(short*)(malloc(n*sizeof(short)));
 };
