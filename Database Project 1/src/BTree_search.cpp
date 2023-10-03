@@ -33,11 +33,13 @@ BTreeNode* Btree::search(BTreeNode* node, int key, bool rangeflag, int key2){
 
             //Key found in leaf node and not a range query
             if (!rangeflag && node->keys[i] == key) {
+                cout<<"Key Found!\n";
                 return node; //Needs changing
             }
 
             //Range query
             if (rangeflag && node->keys[i] >= key && node->keys[i] <= key2){
+                cout<<"Keys Found!\n";
                 return node; //Needs changing
             }
         }
