@@ -12,10 +12,10 @@ void BTree::insert(Key_Records key){
     if(root=null){
         root = new BTreeNode(deg);
         root->keys[0] = key;
-        root->isleaf = true;
-        root->numkeysPerNode = 1
-        numOfNodes++
+        root->numKeysPerNode = 1
+        nodeCount++
     }
+
     else{
 
         //Call search function to check for duplicates 
