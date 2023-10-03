@@ -84,6 +84,55 @@ void remove_key_in_leaf_node(BTreeNode* leafNode, int key) {
 
 
 
+// Helper function to remove a key and its associated child pointer from an internal node
+void remove_key_in_internal_node(BTreeNode* internalNode, int key) {
+    int keyIndex = -1; // Index of the key to be removed , -1 to act as a flag 
+
+    // Find the index of the key to be removed
+    for (int i = 0; i < internalNode->numKeysPerNode; ++i) {
+        if (internalNode->keys[i].key_value == key) {
+            keyIndex = i;
+            break;
+        }
+    }
+
+    // If the key was not found, return (key not present in the node)
+    if (keyIndex == -1) {
+        return;
+    }
+
+    // Shift keys and child pointers to the left to fill the gaps 
+    for (int i = keyIndex; i < internalNode->numKeysPerNode - 1; ++i) {
+        internalNode->keys[i] = internalNode->keys[i + 1];
+        internalNode->child[i + 1] = internalNode->child[i + 2];
+    }
+
+    // Decrease the number of keys and child pointers in the node
+    internalNode->numKeysPerNode--;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
