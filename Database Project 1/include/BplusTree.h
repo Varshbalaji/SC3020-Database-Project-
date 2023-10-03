@@ -53,7 +53,7 @@ class Btree{
 
         } // constructor
 
-        void insert(int key, int value);//// Insert a key-value pair into the B+ tree
+        void insert(Key_Records key);//// Insert a key-value pair into the B+ tree
 
         std::vector<int> search(int key); //// Search for a key in the B+ tree and return associated values
 
