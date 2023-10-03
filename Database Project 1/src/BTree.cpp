@@ -1,4 +1,4 @@
-#include "Storage.h"
+#include "../include/Storage.h"
 #include <string>
 #include <vector>
 #include <tuple>
@@ -8,6 +8,13 @@
 #include "BplusTree.h"
 
 using namespace std;
+
+struct RecordArrayDuplicateKey{
+    
+    int key_value; 
+    vector<RecordAddress> storage_array;
+
+};
 
 Btree::Btree(int n){
     this->root = (BTreeNode*)malloc(sizeof(BTreeNode*));
