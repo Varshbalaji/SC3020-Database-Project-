@@ -6,46 +6,59 @@
 
 using namespace std; 
 
-BTreeNode* Btree::search(BTreeNode* node, int key, bool rangeflag, int key2){
+ std::vector<Key_Records> Btree::search(BTreeNode* node, int key, bool rangeflag, int key2){
+
+    std::vector<Key_Records> search_result = {};
 
     //Tree is empty
     if(node == nullptr) {
         cout<<"B+ Tree is empty\n";
-        return nullptr;
+        return;
     }
 
     //Traverse internal nodes 
     if(!node->isleaf){
-        for(int i=0 ; i<node->size;++i){
-            if (key < node->keys[i]) {
-                return search(node->children[i], key, rangeflag, key2);
+        for(int i=0 ; i<node->numKeysPerNode;++i){
+            if (key < node->keys->key_value) {
+                return search(node->child[i], key, rangeflag, key2);
             }
             
             //reach the end of the keys in the node 
-            if (key == node->size - 1) {
-                return search(node->children[i+1], key, rangeflag, key2);
+            if (key == node->numKeysPerNode - 1) {
+                return search(node->child[i+1], key, rangeflag, key2);
             }
         }        
     }
 
     else { //leaf node 
-        for (int i = 0; i < node->size; ++i) {
 
-            //Key found in leaf node and not a range query
-            if (!rangeflag && node->keys[i] == key) {
+        //If not a range query
+        if(!rangeflag){
+            for (int i = 0; i < node->numKeysPerNode; ++i) {
+                if (node->keys->key_value == key) {
                 cout<<"Key Found!\n";
-                return node; //Needs changing
-            }
-
-            //Range query
-            if (rangeflag && node->keys[i] >= key && node->keys[i] <= key2){
-                cout<<"Keys Found!\n";
-                return node; //Needs changing
+                search_result.push_back(node->keys[i]);
+                return search_result; 
+                }
             }
         }
-    }
+        
+        //Range query
+        else{
+            for (int i = 0; i < node->numKeysPerNode; ++i) {
+                if(node->keys->key_value >= key && node->keys->key_value <= key2){
+                    search_result.push_back(node->keys[i]);
 
-    return nullptr;
+                    if(i==node->numKeysPerNode-1){
+                        node = node->child[i];
+                        i = 0;
+                    }
+                }
+            }
+            return search_result;
+        }
+    }
+    return search_result;
 };
 
  
