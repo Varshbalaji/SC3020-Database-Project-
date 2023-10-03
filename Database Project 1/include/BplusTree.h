@@ -24,7 +24,7 @@ struct BTreeNode{
     BTreeNode(int n){ //n : maximum number of keys in a node 
         keys = new Key_Records[n];
         isleaf = true;
-        numKeysPerNode =0;
+        numKeysPerNode = 0;
         child = new BTreeNode*[n+1]; // Btree node can have maximum n+1 pointers
         for(int i=0;i<n;i++)
         {
