@@ -1,7 +1,7 @@
 #ifndef BplusTree_H
 #define BplusTree_H
 
-#include <storage.h>
+#include "../include/Storage.h"
 #include <math.h>
 #include <vector>
 
@@ -17,7 +17,7 @@ struct BTreeNode{
 
     bool isleaf;  //flag to indicate if leaf node or internal node
     Key_Records * keys; // array of keys that stores keys associated with node 
-    int numKeysPerNode; // number of  keys per node 
+    int numKeysPerNode; // current number of  keys per node 
     BTreeNode **child;
 
     //Constructor 
@@ -55,7 +55,7 @@ class Btree{
 
         void insert(Key_Records key);//// Insert a key-value pair into the B+ tree
 
-        std::vector<int> search(int key); //// Search for a key in the B+ tree and return associated values
+        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); //// Search for a key in the B+ tree and return associated values
 
         void remove(int key);   // Delete a key from the B+ tree
 
