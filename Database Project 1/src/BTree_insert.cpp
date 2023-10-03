@@ -23,7 +23,6 @@ void Btree::insert(Key_Records key){
         return;
     }
 
-
     else{
         BTreeNode *current = root;
         BTreeNode *parent;
@@ -47,15 +46,32 @@ void Btree::insert(Key_Records key){
             }
         }
 
-    }
+        //Once the leaf node is reached first check if the key is a duplicate. If yes, update the storage array of the existing key and return
+        for (int i=0 ; i<current->numKeysPerNode;i++){
+            if(current->keys[i].key_value == key.key_value){
+                current->keys[i].storage_array.insert(current->keys[i].storage_array.end(),key.storage_array.begin(),key.storage_array.end());
+                return;
+            }
+        }
 
-        //Call search function to check for duplicates 
+        //If there is a space in the leaf node, insert key accordingly
+        if(current->numKeysPerNode < deg){
+            int i = 0;
+            while(key.key_value > current->keys[i].key_value && i<current->numKeysPerNode) //find the first key that is smaller than the one being inserted
+                i++; 
+            for(int j = current->numKeysPerNode; j>i ; j--){ // shift the keys after i to the right by one to create space for insertion
+                current->keys[j] = current->keys[j-1];
+            }
+            
+            current->keys[i] = key; //insert the key
+            current->numKeysPerNode++; //update the number of keys in current node
+        }
 
-        //Else find the target node
+        else{ //If there is no space in the leaf node, split the node
+            BTreeNode* newLeafNode = new BTreeNode(deg);
+            nodeCount++;
 
-            //Check if there is space in the node 
-
-            //If there is no space - split the node and adjust the parents
+        }  
 
     }
 
