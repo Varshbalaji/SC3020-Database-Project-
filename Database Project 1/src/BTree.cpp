@@ -50,13 +50,17 @@ Btree::Btree(int n){
 // Helper function to remove a key from a node
 void removeFromNode(BTreeNode* node, int keyIndex) {
     for (int i = keyIndex; i < node->numKeys - 1; ++i) {
-        node->keys[i] = node->keys[i + 1];
+        
         if (node->isleaf) {
             // If it's a leaf node, update the associated values accordingly
             // For example: node->values[i] = node->values[i + 1];
+            
+
         } else {
             // If it's an internal node, update the child pointers accordingly
             // For example: node->children[i] = node->children[i + 1];
+
+
         }
     }
     node->numKeys--;
