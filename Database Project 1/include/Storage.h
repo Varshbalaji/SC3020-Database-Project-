@@ -3,6 +3,7 @@
 #include <tuple>
 #include <vector>
 #include <list>
+#include <string>
 using namespace std;
 
 struct RecordAddress {
@@ -12,12 +13,12 @@ struct RecordAddress {
 
 //Defining structure for a record 
 struct Record{
-    int gameDate;
-    short teamID;
+    char gameDate[11];
+    long teamID;
     short homePts;
-    short FG_PCT_home;
-    short FT_PCT_home;
-    short FG3_PCT_home;
+    float FG_PCT_home;
+    float FT_PCT_home;
+    float FG3_PCT_home;
     short AST_home;
     short REB_home;
     bool HOME_TEAM_WINS;
@@ -30,9 +31,9 @@ class Storage
     public:
         Storage(unsigned int StoragePoolSize, unsigned int BlockSize);
         virtual ~Storage();
-        RecordAddress insertRecord(unsigned int recordSize, char *record);
+        RecordAddress insertRecord(unsigned int recordSize, void *record);
         bool deleteRecord(RecordAddress address, unsigned int recordSize);
-        char *getRecord(RecordAddress address, unsigned int recordSize); //get the current record we require 
+        Record* getRecord(RecordAddress address, unsigned int recordSize); //get the current record we require 
         RecordAddress getNextRecordAddress(RecordAddress address, unsigned int recordSize); //get next record following the one we need
 
         unsigned int getBlockSize(){
