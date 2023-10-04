@@ -33,22 +33,50 @@ void BTree::removeRecord(Key_Records key, BTreeNode* node){
                 {
                     if(i>0)
                     {
-                    removeFromInternal(mergeTwoNodes(node->child[i-1], node->child[i]))
-                    break;
+                        removeFromInternal(mergeTwoNodes(node->child[i-1], node->child[i]), node);
+                        treat_underflow(node, this->root);
+                        break;
                     }
                     else if (i < node->numKeysPerNode)
                     {
-                    removeFromInternal(mergeTwoNodes(node->child[i+1], node->child[i]))
+                        removeFromInternal(mergeTwoNodes(node->child[i+1], node->child[i]), node);
+                        treat_underflow(node, this->root);
                     }
-                    {
-
-                    }
+                
                 }              
             }
         }
     }
     
 };
+
+void BTree::treat_underflow(BTreeNode* node, BTreeNode* root)
+{
+    if(node!=root)
+    {
+        if(node->numKeysPerNode<this->degree/2)
+        {
+            BTreeNode* node1, node2 = findSiblings(node, root);
+            if(tryBorrowing(node, node1) || tryBorrowing(node, node2))
+                break;
+            else 
+                BTreeNode* parentNode = mergeInternalNodes(node1, node, root);
+                treat_underflow(parentNode);
+        }
+    }
+    else
+    {
+        if(node->numKeysPerNode<=1)
+        this->root = node;
+        free(root);
+    }
+    
+};
+
+BTreeNode* mergeInternalNodes(BTreeNode node1, BTreeNode node2, BTreeNode root)
+{
+    
+}
 
 
 
