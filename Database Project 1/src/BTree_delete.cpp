@@ -34,8 +34,9 @@ void BTree::removeRecord(Key_Records key, BTreeNode* node){
                     if(i>0)
                     {
                     removeFromInternal(mergeTwoNodes(node->child[i-1], node->child[i]))
+                    break;
                     }
-                    if(i<node->numKeysPerNode)
+                    else if (i < node->numKeysPerNode)
                     {
                     removeFromInternal(mergeTwoNodes(node->child[i+1], node->child[i]))
                     }
