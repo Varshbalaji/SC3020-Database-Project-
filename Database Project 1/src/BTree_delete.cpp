@@ -73,11 +73,55 @@ void BTree::treat_underflow(BTreeNode* node, BTreeNode* root)
     
 };
 
-BTreeNode* mergeInternalNodes(BTreeNode node1, BTreeNode node2, BTreeNode root)
+BTreeNode* mergeInternalNodes(BTreeNode* node1, BTreeNode* node2, BTreeNode* parent)
 {
-    
+    if(node1->numKeysPerNode + node2->numKeysPerNode <= this.degree)
+    {
+        return 0;
+    }
+    else
+    {
+        for(int i = 0; i<node2->numKeysPerNode; i++)
+        {
+            insert(node2->child[i], node2->child[i], node1);
+        }
+    }
+    return max(node1[key[0]],node2[key[0]]);
 }
 
+BTreeNode** findSiblings(BTreeNode* node, BTreeNode* root)
+{
+    BTreeNode* curr;
+    BTreeNode* siblings[2];
+    curr = root;
+    int keyToFind = node->keys[0].key_value;
+    bool parent = false;
+    while(!parent)
+    {
+        int i = 0;
+        for(i = 0; i < curr->numKeysPerNode; i++)
+        {
+            
+            if(curr->keys[i].key_value >= keyToFind)
+                break;
+        }
+        if(node == curr->child[i])
+        {
+            parent = true;
+            if(i<=0)
+            siblings[0] = nullptr;
+            else siblings[0] = curr->child[i-1];
+            if(i==curr->numKeysPerNode)
+            siblings[1] = nullptr;
+            else siblings[1] = curr->child[i+1];
+        }
+        else
+        {
+            curr = curr->child[i];
+        }
+    }
+    return siblings;
+}
 
 
 bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
