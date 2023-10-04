@@ -79,10 +79,25 @@ RecordAddress Storage::insertRecord(unsigned int recordSize, void *record){
 bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
     try{
         // Get Address of the Record to be deleted within the block 
-        blockRecordAddress = StoragePtr + ( (recordAddress.blockNumber - 1) * BlockSize) + recordAddress.offset;
+        char *dataRecord;
+        dataRecord = StoragePtr + ( (recordAddress.blockNumber - 1) * BlockSize) + recordAddress.offset;
+        if (recordAddress.blockNumber > MaxNumberOfBlocks){
+            cout << "Error: Record to be deleted is beyond allocated memory ! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+            return false;
+        }
+        if (recordAddress.blockNumber > CurrentFreeBlockNumber ||
+            (recordAddress.blockNumber == CurrentFreeBlockNumber && recordAddress.offset >= CurrentFreeBlockOffset)){ 
+            cout << "Error: Trying to delete non-existent record at Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+            return false;
+        }
+
+        if (dataRecord[0] == '\000'){ 
+            cout << "Error: Trying to delete record that has been deleted !" << "\n";
+            return false;
+        }
         
         // 
-        memset((char *)blockRecordAddress, '\0', recordSize); // Fill Empty space with nulls
+        memset(dataRecord, '\0', recordSize); // Fill Empty space with nulls
 
         TotalNumberOfRecords --;
         return true;
@@ -97,11 +112,19 @@ bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
 Record* Storage::getRecord(RecordAddress recordAddress, unsigned int recordSize){
     char *dataRecord;
     dataRecord  = StoragePtr + ((recordAddress.blockNumber -1) * BlockSize ) + recordAddress.offset;
-    if (dataRecord[0] == '\000'){
+
+    if (recordAddress.blockNumber > MaxNumberOfBlocks){
+        cout << "Error: Record Address to be fetched is beyond allocated memory ! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
         return nullptr;
     }
-    else if (dataRecord > MaxAddress){
-        cout << "Error: Record Address to be fetched is invalid and out of bound !" << "\n";
+    if (recordAddress.blockNumber > CurrentFreeBlockNumber ||
+        (recordAddress.blockNumber == CurrentFreeBlockNumber && recordAddress.offset >= CurrentFreeBlockOffset)){ 
+        cout << "Error: Trying to get non-existent record at Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+        return nullptr;
+    }
+
+    if (dataRecord[0] == '\000'){ 
+        return nullptr;
     }
 
     return ((Record *) dataRecord);
