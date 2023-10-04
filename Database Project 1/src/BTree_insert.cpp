@@ -126,7 +126,25 @@ void Btree::insert(Key_Records key){
 //Helper Functions
 
 //Updates the parent node with the newly created child nodes and adds a parent if needed 
-void Btree::insertparent(Key_Records key, BTreeNode *cursor, BTreeNode *child){
+void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
+    if(current->numKeysPerNode < deg){ //If the internal node is not full
+        int i = 0;
+        while(key.key_value > current->keys[i].key_value && i < current->numKeysPerNode) //find the last key that is smaller than the one being inserted
+            i++;
+        
+        for(int j = current->numKeysPerNode; j>i; j--){
+            current->keys[j] = current->keys[j-1];
+        }
+
+        current->keys[i] = key; //insert the key
+        current->numKeysPerNode++; //increase current number of keys in the node
+        current->child[i+1] = child; //point the i+1th pointer to the newLeafNode (child)
+    }
+
+    else { //if the parent node is full, split the node and create a new internal node
+    
+
+    }
 
 }
 
