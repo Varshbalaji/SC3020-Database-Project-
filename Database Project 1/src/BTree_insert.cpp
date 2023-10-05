@@ -66,6 +66,9 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
             current->keys[i] = key; //insert the record  
             cout <<"Test" <<current->keys[i].key_value <<"\n"; 
             current->numKeysPerNode++; //update the number of keys in current node
+            current->child[current->numKeysPerNode]=current->child[current->numKeysPerNode-1]; //change pointer of old last position to new last position
+            current->child[current->numKeysPerNode-1]=nullptr;
+            return;
         }
 
         else{ //If there is no space in the leaf node, split the node
@@ -249,7 +252,6 @@ Key_Records Btree::fetchSSKey(BTreeNode *current){
 
 }
 
-
 // Print the tree
 void Btree::printTree(BTreeNode *current)
 {
@@ -271,6 +273,87 @@ void Btree::printTree(BTreeNode *current)
 BTreeNode *Btree::fetchRoot(){
     return root;
 }
+
+std::vector<Key_Records> Btree::search(int key, bool rangeflag, int key2){
+
+    std::vector<Key_Records> search_result;
+
+    //Tree is empty
+    if(root == nullptr) {
+        cout<<"B+ Tree is empty\n";
+        return {};
+    }
+
+    else{
+        BTreeNode* current = root;
+
+        while (current ->isleaf == false){
+            // the key to be inserted is larger than all keys in the internal node  
+            if (key >= current->keys[current->numKeysPerNode-1].key_value){
+                current = current->child[current->numKeysPerNode]; // go to the next node
+            }
+            
+            else{
+                for(int i=0;i<current->numKeysPerNode;i++){
+                    if(key < current->keys[i].key_value){
+                        current = current->child[i];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // //traverse through internal nodes 
+        // while(current->isleaf == false){
+        //     for(int i=0; i<current->numKeysPerNode; i++){
+        //         if(key < current->keys[i].key_value){
+        //             current = current->child[i]; 
+        //             break;
+        //         }
+
+        //         //if we reach the end of the keys in the node
+        //         if(key == current->keys[current->numKeysPerNode - 1].key_value){
+        //             current = current->child[i+1];
+        //             break;
+        //         }
+        //     }
+        // }
+
+        //leaf node 
+        if(!rangeflag){ //Single key query
+            for(int i = 0; i<current->numKeysPerNode; i++){
+                if (current->keys[i].key_value == key) {
+                    cout<<"Key Found!\n";
+                    search_result.push_back(current->keys[i]);
+                    return search_result;
+                }
+            }
+        }
+
+        else{ //Range query
+            
+            for (int i = 0; i < current->numKeysPerNode+1; i++) {
+                
+                if(i==current->numKeysPerNode){
+                        current = current->child[i];
+                        i = 0;
+                }
+
+                if(current->keys[i].key_value >= key && current->keys[i].key_value <= key2){
+                    search_result.push_back(current->keys[i]);
+                
+                }
+
+                if(current->keys[i].key_value>=key2)
+                    break;
+
+            }
+            return search_result;
+        }
+
+    }
+    return search_result;
+};
 
 int main(){
     int key1 = 1;
@@ -312,8 +395,10 @@ int main(){
 
     treeNode.printTree(treeNode.fetchRoot());
 
+    vector<Key_Records> searchResult = treeNode.search(8,false,10);
+    for(int i=0; i<searchResult.size(); i++){
+        cout<<searchResult[i].key_value<<"\n";
 
-
-
+    }
 }
 

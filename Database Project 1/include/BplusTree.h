@@ -64,9 +64,9 @@ class Btree
         Btree(unsigned int BlockSize){
             root = nullptr;
             nodeCount =0;
-            deg = 0;
+            deg = 3;
             unsigned int spaceForKeys = BlockSize - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
-            deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
+            // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
 
@@ -79,10 +79,7 @@ class Btree
         void printTree(BTreeNode *current);
         BTreeNode *fetchRoot();
 
-
-
-
-        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
+        std::vector<Key_Records> search(int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
 
         void removeRecord(Key_Records key);
 
