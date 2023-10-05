@@ -45,6 +45,8 @@ class Btree
         int nodeCount;
 
         // Helper functions 
+        void treat_underflow(BTreeNode* node);
+
         void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
         BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
 
@@ -79,6 +81,7 @@ class Btree
             // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
+        void updateParentKey2(BTreeNode* parent, int oldKey, int newKey);
 
 
         void insert(int keyValue, RecordAddress recordAddress);
