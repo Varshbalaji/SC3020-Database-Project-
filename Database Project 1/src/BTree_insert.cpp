@@ -7,8 +7,40 @@
 #include <algorithm>
 #include "../include/BplusTree.h"
 
-
 using namespace std;
+
+
+// Searching on a B+ tree in C++
+
+
+// // Search operation
+// void Btree::searchTree(int key) {
+//   if (root == NULL) {
+//     cout << "Tree is empty\n";
+//   } 
+//   else {
+//     BTreeNode *cursor = root;
+//     while (cursor->IS_LEAF == false) {
+//       for (int i = 0; i < cursor->size; i++) {
+//         if (x < cursor->key[i]) {
+//           cursor = cursor->ptr[i];
+//           break;
+//         }
+//         if (i == cursor->size - 1) {
+//           cursor = cursor->ptr[i + 1];
+//           break;
+//         }
+//       }
+//     }
+//     for (int i = 0; i < cursor->size; i++) {
+//       if (cursor->key[i] == x) {
+//         cout << "Found\n";
+//         return;
+//       }
+//     }
+//     cout << "Not found\n";
+//   }
+// }
 
 
 void Btree::insert(int keyValue, RecordAddress recordAddress){
@@ -64,7 +96,8 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
             for(int j = current->numKeysPerNode; j>i ; j--){ // shift the keys after i to the right by one to create space for insertion
                 current->keys[j] = current->keys[j-1];
             }
-            current->keys[i] = key; //insert the record     
+            current->keys[i] = key; //insert the record  
+            cout <<"Test" <<current->keys[i].key_value <<"\n"; 
             current->numKeysPerNode++; //update the number of keys in current node
         }
 
@@ -81,7 +114,7 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
             int i = 0, j;
             while(key.key_value > virtualNode[i].key_value && i<deg) //find the last key that is smaller than the one being inserted
                 i++;
-            for(j = deg + 1; j>i ; j--){   // shift the keys after i to the right by one to create space for insertion
+            for(j = deg ; j>i ; j--){   // shift the keys after i to the right by one to create space for insertion
                 virtualNode[j] = virtualNode[j-1];
             }
 
@@ -90,7 +123,7 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
 
             //split the current node into the two leaf nodes
             current->numKeysPerNode = (deg+1)/2;
-            newLeafNode->numKeysPerNode = deg+1 - (deg+1)/2;
+            newLeafNode->numKeysPerNode = (deg +1) - (deg+1)/2;
 
             //Update pointers
             current->child[current->numKeysPerNode] = newLeafNode; // Make the last key of the current node point to the new leaf node
@@ -100,10 +133,13 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
             //Distribute records from the virtualNode between the 2 leaf nodes
             for(i = 0; i < current->numKeysPerNode; i++){
                     current->keys[i] = virtualNode[i];
+                    cout << current->keys[i].key_value<<"\n";
             }
 
             for(i = 0, j = current->numKeysPerNode; i < newLeafNode->numKeysPerNode; i++, j++){
                     newLeafNode->keys[i] = virtualNode[j];
+                    cout << newLeafNode->keys[i].key_value << "\n";
+
             }
 
             //create a new root if the current node is the root
@@ -226,10 +262,10 @@ void Btree::printTree(BTreeNode *current)
   if (current != NULL) {
     for (int i = 0; i < current->numKeysPerNode; i++) {
         int value = current->keys[i].key_value;
-         cout << value  << " ";
+        cout << value <<" ";
     }
     cout << "\n";
-    if (current->isleaf != true) {
+    if (current->isleaf != true) {  
       for (int i = 0; i < current->numKeysPerNode + 1; i++) {
         printTree(current->child[i]);
       }
@@ -243,20 +279,28 @@ BTreeNode *Btree::fetchRoot(){
 }
 
 int main(){
-    int key1 = 1610612762;
+    int key1 = 1;
     RecordAddress address1 = {1, 20};
-    int key2 = 1610612755;
+    int key2 = 2;
     RecordAddress address2 = {2, 40};
-    int key3 = 1610612720;
+    int key3 = 10;
     RecordAddress address3 = {4, 20};
-    int key4 = 1610612755;
-    RecordAddress address4 = {3, 20};
-    int key5 = 1610612759;
+    int key4 = 4;
+    RecordAddress address4 = {3, 20};  //duplicate 
+    int key5 = 5;
     RecordAddress address5 = {8, 20};
-    int key6 = 1610612655;
+    int key6 = 6;
     RecordAddress address6 = {6, 20};
-    int key7 = 1610612655;
-    RecordAddress address7 = {5, 20};
+    int key7 = 9;
+    RecordAddress address7 = {7, 20};
+    int key8 = 3;
+    RecordAddress address8 = {8, 40};
+    int key9 = 7;
+    RecordAddress address9 = {9, 20};
+    int key10 = 8;
+    RecordAddress address10 = {10, 20};
+    int key11 = 8;
+    RecordAddress address11 = {11, 40};
 
 
     Btree treeNode(60) ;
@@ -267,6 +311,11 @@ int main(){
     treeNode.insert(key5, address5);
     treeNode.insert(key6, address6);
     treeNode.insert(key7, address7);
+    treeNode.insert(key8, address8);
+    treeNode.insert(key9, address9);
+    treeNode.insert(key10, address10);
+    treeNode.insert(key11, address11);
+
     treeNode.printTree(treeNode.fetchRoot());
 
 
