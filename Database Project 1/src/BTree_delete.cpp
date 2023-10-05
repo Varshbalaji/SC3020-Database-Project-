@@ -17,7 +17,11 @@ void Btree::removeRecord(Key_Records key, BTreeNode* node){
     int keyToFind =  key.key_value;
     
     if(node->isleaf)
-        remove_key_in_leaf_node(node, keyToFind);
+
+    {
+        remove_key_in_leaf_node(node,keyToFind);  //remove_key_in_leaf_node(BTreeNode* leafNode, int key)
+    }
+
     else
     {
         for(int i = 0; i < node->numKeysPerNode; i++)
@@ -33,7 +37,7 @@ void Btree::removeRecord(Key_Records key, BTreeNode* node){
                     remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i-1], node->child[i]));
                     else if(i < node->numKeysPerNode) // Case for 
                     remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i+1], node->child[i]));
-                   
+  
                 }              
             }
         }
@@ -80,7 +84,8 @@ int Btree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
     {
         for(int i = 0; i<node2->numKeysPerNode; i++)
         {
-            insert(node2->child[i], node2->child[i], node1);
+            insert_ChildNode_in_ParentNode(node1,node2->child[i], node2->keys[i].key_value); //void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+
         }
     }
     return max(node1[key[0]],node2[key[0]]);
