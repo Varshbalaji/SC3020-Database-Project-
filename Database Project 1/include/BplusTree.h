@@ -35,7 +35,8 @@ struct BTreeNode{
 
 };
 
-class Btree{
+class Btree
+{
 
     private:
         int deg; //degree
@@ -53,26 +54,38 @@ class Btree{
 
         } // constructor
 
-        void insert(int key, RecordAddress address);//// Insert a key-value pair into the B+ tree
+        void insert(Key_Records key);
 
-        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
+        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
 
-        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); //// Search for a key in the B+ tree and return associated values
-
-        void remove(int key);   // Delete a key from the B+ tree
-
-        void print();       // Print the B+ tree for debugging 
+        void removeRecord(Key_Records key);
 
 
+
+ 
+    
     private:
-        // Helper functions for deletion and balancing
-        void removeFromNode(BTreeNode* node, int keyIndex);
-        void redistributeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode);
-        void mergeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
-        void redistributeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode);
-        void mergeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
-        void handleUnderflow(BTreeNode* node, BTreeNode* parent, int keyIndex);
-        int findKeyIndex(BTreeNode* node, int key);
-    };
+        // Helper functions 
+        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
+
+        void removeRecord(Key_Records key, BTreeNode* node);
+
+        bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
+
+        int mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
+
+        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
+
+        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
+
+        void remove_key_in_internal_node(BTreeNode* internalNode, int key);
+
+        void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+
+
+
+
+};
+
 
 #endif
