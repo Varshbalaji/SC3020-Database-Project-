@@ -66,9 +66,9 @@ class Btree
         Btree(unsigned int BlockSize){
             root = nullptr;
             nodeCount =0;
-            deg = 0;
+            deg = 3;
             unsigned int spaceForKeys = BlockSize - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
-            deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
+            // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
 

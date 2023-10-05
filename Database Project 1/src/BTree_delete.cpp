@@ -24,10 +24,11 @@ void Btree::removeRecord(Key_Records key, BTreeNode* node){
 
     else
     {
-        for(int i = 0; i < node->numKeysPerNode; i++)
+        int i = 0;
+        for( i = 0; i < node->numKeysPerNode; i++)
         {
             if(node->keys[i].key_value >= keyToFind)
-            removeRecord(key, node->child[i+1]);
+            removeRecord(key, node->child[i]);
             // Condition of unbalanced child
             if(node->child[i]->numKeysPerNode < (this->deg+1)/2)
             {
@@ -41,6 +42,19 @@ void Btree::removeRecord(Key_Records key, BTreeNode* node){
                 }              
             }
         }
+            removeRecord(key, node->child[i+1]);
+            if(node->child[i+1]->numKeysPerNode < (this->deg+1)/2)
+            {
+                if(!((i>0 && tryBorrowing(node->child[i], node->child[i+1])) || (i<node->numKeysPerNode && tryBorrowing(node->child[i+1], node->child[i]))))
+                {
+                    if(i > 0)
+                    remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i-1], node->child[i]));
+                    else if(i < node->numKeysPerNode) // Case for 
+                    remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i+1], node->child[i]));
+  
+                }              
+            }
+
     }
     
 };
