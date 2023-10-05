@@ -44,34 +44,29 @@ class Btree
         BTreeNode* root;
         int nodeCount;
 
-
         // Helper functions 
         void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
         BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
 
         void removeRecord(int key, BTreeNode* node);
-        // Deletion Helper functions 
+
+        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
+        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
+
 
         bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
-        void updateParentKey2(BTreeNode* parent, int oldKey, int newKey);
-
 
         int mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
 
-        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
 
-        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
 
         void remove_key_in_internal_node(BTreeNode* internalNode, int key);
 
         void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
-
-
-        //void updateParentKey(BTreeNode* parent, int oldKey, int newKey);
+        
+        void findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index);
 
         std::pair<BTreeNode*, BTreeNode*> findAdjacentSiblings(BTreeNode* root, BTreeNode* node);
-
-        void  findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index);
 
 
         
@@ -86,18 +81,9 @@ class Btree
         } // constructor
 
 
+        void insert(int keyValue, RecordAddress recordAddress);
 
-        void insert(int keyValue, RecordAddress recordAddres);
-
-        //Insert Helper Functions
-        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
-        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
-        Key_Records fetchSSKey(BTreeNode *current);
-        void printTree(BTreeNode *current);
-        BTreeNode *fetchRoot();
-
-
-        std::vector<Key_Records> search(int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
+        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
 
         void removeRecord(int key);
 
@@ -118,8 +104,6 @@ class Btree
         BTreeNode *fetchRoot();
         //void printTree(BTreeNode* node, int level = 0);
         //void print(BTreeNode* node);
-        // void printTree(BTreeNode* node, int level = 0);
-        void print(BTreeNode* node);
 
 };
 

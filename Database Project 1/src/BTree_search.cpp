@@ -6,60 +6,57 @@
 
 using namespace std; 
 
- std::vector<Key_Records> Btree::search(int key, bool rangeflag, int key2){
+ std::vector<Key_Records> Btree::search(BTreeNode* node, int key, bool rangeflag, int key2){
 
     std::vector<Key_Records> search_result = {};
 
     //Tree is empty
-    if(root == nullptr) {
+    if(node == nullptr) {
         cout<<"B+ Tree is empty\n";
         return;
     }
 
-    else{
-        BTreeNode* current = root;
+    //Traverse internal nodes 
+    if(!node->isleaf){
+        for(int i=0 ; i<node->numKeysPerNode;++i){
+            if (key < node->keys->key_value) {
+                return search(node->child[i], key, rangeflag, key2);
+            }
+            
+            //reach the end of the keys in the node 
+            if (key == node->numKeysPerNode - 1) {
+                return search(node->child[i+1], key, rangeflag, key2);
+            }
+        }        
+    }
 
-        //traverse through internal nodes 
-        while(current->isleaf == false){
-            for(int i=0; i<current->numKeysPerNode; i++){
-                if(key < current->keys[i].key_value){
-                    current = current->child[i]; 
-                    break;
-                }
+    else { //leaf node 
 
-                //if we reach the end of the keys in the node
-                if(key == current->numKeysPerNode - 1){
-                    current = current->child[i+1];
-                    break;
+        //If not a range query
+        if(!rangeflag){
+            for (int i = 0; i < node->numKeysPerNode; ++i) {
+                if (node->keys->key_value == key) {
+                cout<<"Key Found!\n";
+                search_result.push_back(node->keys[i]);
+                return search_result; 
                 }
             }
         }
+        
+        //Range query
+        else{
+            for (int i = 0; i < node->numKeysPerNode; ++i) {
+                if(node->keys->key_value >= key && node->keys->key_value <= key2){
+                    search_result.push_back(node->keys[i]);
 
-        //leaf node 
-        if(!rangeflag){ //Single key query
-            for(int i = 0; i<current->numKeysPerNode; i++){
-                if (current->keys[i].key_value == key) {
-                    cout<<"Key Found!\n";
-                    search_result.push_back(current->keys[i]);
-                    return search_result;
-                }
-            }
-        }
-
-        else{ //Range query
-            for (int i = 0; i < current->numKeysPerNode; ++i) {
-                if(current->keys[i].key_value >= key && current->keys[i].key_value <= key2){
-                    search_result.push_back(current->keys[i]);
-
-                    if(i==current->numKeysPerNode-1){
-                        current = current->child[i];
+                    if(i==node->numKeysPerNode-1){
+                        node = node->child[i];
                         i = 0;
                     }
                 }
             }
             return search_result;
         }
-
     }
     return search_result;
 };

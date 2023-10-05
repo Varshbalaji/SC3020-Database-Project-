@@ -37,148 +37,52 @@ void  Btree::insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddr
     leafNode->numKeysPerNode++;
 }
 
-
-
-
-// bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
-// {
-//     bool rebalanced = false;
-
-
-
-
-//     if(node1->numKeysPerNode < (this->deg+1)/2)
-//     {
-//         if(node2->numKeysPerNode <= (this->deg+1)/2)
-//         rebalanced = false;
-//         else
-//         {
-//             if(node1->isleaf)
-//             {               
-//                 insert_in_leaf_node(node1, node2->keys[0].key_value, &(node2->keys[0].storage_array));
-//                 remove_key_in_leaf_node(node2, node2->keys[0].key_value);
-//             }
-//             else
-//             {
-//                 insert_ChildNode_in_ParentNode(node1, node2->child[0], node2->keys[0].key_value);
-//                 remove_key_in_internal_node(node2, node2->keys[0].key_value);
-//             }
-//             rebalanced = true;
-//         }
-
-//     }
-//     else 
-//     {
-//         if(node1->numKeysPerNode <= (this->deg+1)/2)
-//         rebalanced = false;
-//         else
-//         {
-            
-//             if(node1->isleaf)
-//             {
-//                 insert_in_leaf_node(node2,  node1->keys[node1->numKeysPerNode-1].key_value, &(node1->keys[node1->numKeysPerNode-1].storage_array));
-//                 remove_key_in_leaf_node(node1, node1->keys[node1->numKeysPerNode-1].key_value);
-//             }
-//             else
-//             {
-//                 insert_ChildNode_in_ParentNode(node2,  node1->child[node1->numKeysPerNode-1], node1->keys[node1->numKeysPerNode-1].key_value);
-//                 remove_key_in_internal_node(node1,  node1->keys[node1->numKeysPerNode-1].key_value);
-//             }
-//             rebalanced = true;
-//         }
-//     }
-//     return rebalanced;
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Helper function to update the key in the parent node when a child node borrows
-void Btree::updateParentKey2(BTreeNode* parent, int oldKey, int newKey) {
-    for (int i = 0; i < parent->numKeysPerNode; ++i) {
-        if (parent->keys[i].key_value == oldKey) {
-            parent->keys[i].key_value = newKey;
-            break;
-        }
-    }
-}
-
-
-bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2) {
+bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
+{
     bool rebalanced = false;
-
-    if (node1->numKeysPerNode < (this->deg + 1) / 2) {
-        if (node2->numKeysPerNode <= (this->deg + 1) / 2)
-            rebalanced = false;
-        else {
-            if (node1->isleaf) {
+    if(node1->numKeysPerNode < (this->deg+1)/2)
+    {
+        if(node2->numKeysPerNode <= (this->deg+1)/2)
+        rebalanced = false;
+        else
+        {
+            if(node1->isleaf)
+            {
+               
                 insert_in_leaf_node(node1, node2->keys[0].key_value, &(node2->keys[0].storage_array));
-                int oldKey = node2->keys[0].key_value;
-                remove_key_in_leaf_node(node2, oldKey);
-                BTreeNode* parent = nullptr;
-                int index = -1;
-                findParentAndIndex(root, root, nullptr, node2, parent, index);
-                updateParentKey2(parent, oldKey, node2->keys[0].key_value);
-            } else {
+                remove_key_in_leaf_node(node2, node2->keys[0].key_value);
+            }
+            else
+            {
                 insert_ChildNode_in_ParentNode(node1, node2->child[0], node2->keys[0].key_value);
-                int oldKey = node2->keys[0].key_value;
-                remove_key_in_internal_node(node2, oldKey);
-                BTreeNode* parent = nullptr;
-                int index = -1;
-                findParentAndIndex(root, root, nullptr, node2, parent, index);
-                updateParentKey2(parent, oldKey, node2->keys[0].key_value);
+                remove_key_in_internal_node(node2, node2->keys[0].key_value);
             }
             rebalanced = true;
         }
-    } else {
-        if (node1->numKeysPerNode <= (this->deg + 1) / 2)
-            rebalanced = false;
-        else {
-            if (node1->isleaf) {
-                insert_in_leaf_node(node2, node1->keys[node1->numKeysPerNode - 1].key_value,
-                                    &(node1->keys[node1->numKeysPerNode - 1].storage_array));
-                int oldKey = node1->keys[node1->numKeysPerNode - 1].key_value;
-                remove_key_in_leaf_node(node1, oldKey);
-                BTreeNode* parent = nullptr;
-                int index = -1;
-                findParentAndIndex(root, root, nullptr, node1, parent, index);
-                updateParentKey2(parent, oldKey, node1->keys[node1->numKeysPerNode - 1].key_value);
-            } else {
-                insert_ChildNode_in_ParentNode(node2, node1->child[node1->numKeysPerNode - 1],
-                                               node1->keys[node1->numKeysPerNode - 1].key_value);
-                int oldKey = node1->keys[node1->numKeysPerNode - 1].key_value;
-                remove_key_in_internal_node(node1, oldKey);
-                BTreeNode* parent = nullptr;
-                int index = -1;
-                findParentAndIndex(root, root, nullptr, node1, parent, index);
-                updateParentKey2(parent, oldKey, node1->keys[node1->numKeysPerNode - 1].key_value);
+
+    }
+    else 
+    {
+        if(node1->numKeysPerNode <= (this->deg+1)/2)
+        rebalanced = false;
+        else
+        {
+            
+            if(node1->isleaf)
+            {
+                insert_in_leaf_node(node2,  node1->keys[node1->numKeysPerNode-1].key_value, &(node1->keys[node1->numKeysPerNode-1].storage_array));
+                remove_key_in_leaf_node(node1, node1->keys[node1->numKeysPerNode-1].key_value);
+            }
+            else
+            {
+                insert_ChildNode_in_ParentNode(node2,  node1->child[node1->numKeysPerNode-1], node1->keys[node1->numKeysPerNode-1].key_value);
+                remove_key_in_internal_node(node1,  node1->keys[node1->numKeysPerNode-1].key_value);
             }
             rebalanced = true;
         }
     }
     return rebalanced;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
