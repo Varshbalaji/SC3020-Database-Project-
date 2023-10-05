@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
-#include "BplusTree.h"
+#include "../include/BplusTree.h"
 
 
 using namespace std;
@@ -140,10 +140,10 @@ void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key
         parent->keys[i] = parent->keys[i - 1];
     }
 
-    // Insert the new child node and associated key
+    // Insert the new child node and respective key
     parent->child[insertIndex + 1] = child;
     parent->keys[insertIndex].key_value = key;
-    parent->numKeysPerNode++;
+    parent->numKeysPerNode++;   
 }
 
 
@@ -206,5 +206,56 @@ std::pair<BTreeNode*, BTreeNode*> findAdjacentSiblings(BTreeNode* root, BTreeNod
 
     return std::make_pair(leftSibling, rightSibling);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+int main()
+{
+
+    // Create a B+ tree instance
+    Btree btreeInstance(512); // Assuming a block size of 512
+
+    // Create nodes and set their key values
+    Key_Records node1;
+    node1.key_value = 1;
+
+    Key_Records node2;
+    node2.key_value = 2;
+
+    Key_Records node3;
+    node3.key_value = 3;
+
+    // Manually construct the tree structure
+    BTreeNode* root = new BTreeNode(btreeInstance.getDegree());
+    root->isleaf = false;
+    root->keys[0] = node2; // Set the root key
+    root->numKeysPerNode = 1;
+    root->child[0] = new BTreeNode(btreeInstance.getDegree());
+    root->child[1] = new BTreeNode(btreeInstance.getDegree());
+    root->child[0]->keys[0] = node1; // Set the left child key
+    root->child[0]->numKeysPerNode = 1;
+    root->child[1]->keys[0] = node3; // Set the right child key
+    root->child[1]->numKeysPerNode = 1;
+
+    // Set the root node in the B+ tree instance
+    btreeInstance.setRoot(root);
+
+    // Now, you have manually constructed a B+ tree with nodes 1, 2, and 3
+    // You can test your functions on this instance
+
+    btreeInstance.print();
+
+    return 0;
+}
+
 
 
