@@ -249,33 +249,33 @@ std::pair<BTreeNode*, BTreeNode*> findAdjacentSiblings(BTreeNode* root, BTreeNod
         //         }
         //     }
 
-        void Btree::printTree(BTreeNode* node, int level /* = 0 */) {
-            if (node == nullptr) {
-                return;
-            }
+        // void Btree::printTree(BTreeNode* node, int level /* = 0 */) {
+        //     if (node == nullptr) {
+        //         return;
+        //     }
 
-            // Print the current node's keys at this level
-            for (int i = 0; i < node->numKeysPerNode; ++i) {
-                for (int j = 0; j < level; ++j) {
-                    cout << "  "; // Indentation based on the level
-                }
-                cout << node->keys[i].key_value << endl;
-            }
+        //     // Print the current node's keys at this level
+        //     for (int i = 0; i < node->numKeysPerNode; ++i) {
+        //         for (int j = 0; j < level; ++j) {
+        //             cout << "  "; // Indentation based on the level
+        //         }
+        //         cout << node->keys[i].key_value << endl;
+        //     }
 
-            // Recursively print the child nodes
-            if (!node->isleaf) {
-                for (int i = 0; i <= node->numKeysPerNode; ++i) {
-                    printTree(node->child[i], level + 1);
-                }
-            }
-        }
+        //     // Recursively print the child nodes
+        //     if (!node->isleaf) {
+        //         for (int i = 0; i <= node->numKeysPerNode; ++i) {
+        //             printTree(node->child[i], level + 1);
+        //         }
+        //     }
+        // }
 
 
 
-        void Btree::print(BTreeNode* node) {
-                cout << "B+ Tree:" << endl;
-                printTree(node,0);
-            }
+        // void Btree::print(BTreeNode* node) {
+        //         cout << "B+ Tree:" << endl;
+        //         printTree(node,0);
+        //     }
 
 
 
