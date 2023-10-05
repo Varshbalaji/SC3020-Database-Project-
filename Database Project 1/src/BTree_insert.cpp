@@ -10,39 +10,6 @@
 using namespace std;
 
 
-// Searching on a B+ tree in C++
-
-
-// // Search operation
-// void Btree::searchTree(int key) {
-//   if (root == NULL) {
-//     cout << "Tree is empty\n";
-//   } 
-//   else {
-//     BTreeNode *cursor = root;
-//     while (cursor->IS_LEAF == false) {
-//       for (int i = 0; i < cursor->size; i++) {
-//         if (x < cursor->key[i]) {
-//           cursor = cursor->ptr[i];
-//           break;
-//         }
-//         if (i == cursor->size - 1) {
-//           cursor = cursor->ptr[i + 1];
-//           break;
-//         }
-//       }
-//     }
-//     for (int i = 0; i < cursor->size; i++) {
-//       if (cursor->key[i] == x) {
-//         cout << "Found\n";
-//         return;
-//       }
-//     }
-//     cout << "Not found\n";
-//   }
-// }
-
-
 void Btree::insert(int keyValue, RecordAddress recordAddress){
 
 
@@ -176,43 +143,65 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
 
         current->keys[i] = key; //insert the key
         current->numKeysPerNode++; //increase current number of keys in the node
+        cout << "Testing Internal" << current->keys[i].key_value <<"\n";
         current->child[i+1] = child; //point the i+1th pointer to the newLeafNode (child)
+        cout<< "child: "<<  current->child[i+1];
     }
 
     else { //if the parent node is full, split the node and create a new internal node
         BTreeNode *newParent = new BTreeNode(deg);
+        nodeCount++;
         Key_Records virtualKeys[deg+1];
         BTreeNode *virtualChildren[deg+2];
+        
         for (int keyIndex = 0; keyIndex < deg; keyIndex++) {
             virtualKeys[keyIndex] = current->keys[keyIndex];     //copy the keys 
+            virtualChildren[keyIndex] = current->child[keyIndex];
         }
-        for (int childIndex = 0; childIndex < deg + 1; childIndex++) {
-            virtualChildren[childIndex] = current->child[childIndex];
-        }
+        virtualChildren[deg] = current->child[deg];
+
+        
         int i=0, j;
         while((key.key_value > virtualKeys[i].key_value) && i<deg){
                 i++;
         }
-        for (int j = deg+ 1; j>i;j--){
+        for (int j = deg; j>i;j--){
             virtualKeys[j] = virtualKeys[j-1];
+            virtualChildren[j+1] = virtualChildren[j];
+
         }
         virtualKeys[i] = key; //insert key in the correct position of the virtual array of keys 
-        for (int j = deg+ 2; j>i+1;j--){
-            virtualChildren[j] = virtualChildren[j-1];
-        }
         virtualChildren[i+1] = child;
         newParent->isleaf = false;
+
         current ->numKeysPerNode = (deg +1)/2; //number of keys in the current node 
         newParent->numKeysPerNode = deg - (deg +1)/2; // number of keys in the new internal node 
-        for (i = 0, j = current->numKeysPerNode + 1; i < newParent->numKeysPerNode; i++, j++) {
-                newParent->keys[i] = virtualKeys[j]; //copy half of the keys into the new internal node 
+
+        for (i=0;i<current->numKeysPerNode;i++){
+            current->keys[i] = virtualKeys[i];
+            current->child[i] = virtualChildren[i];
         }
-        for (i = 0, j = current->numKeysPerNode + 1; i < newParent->numKeysPerNode + 1; i++, j++) {
-                newParent->child[i] = virtualChildren[j];
+        current->child[current->numKeysPerNode] = virtualChildren[i];
+
+        j = current->numKeysPerNode+1;
+        for(i=0;i<newParent->numKeysPerNode;i++){
+            newParent->keys[i] = virtualKeys[j];
+            newParent->child[i] = virtualChildren[j];
+            j++;
         }
+        newParent->child[newParent->numKeysPerNode] = virtualChildren[j];
+
+        // for(i=0;i<current->numKeysPerNode+1;i++){
+        //     current->keys[i] = NULL;
+        //     current->child[i+1] = nullptr;
+        // }
+       
         if (current == root) { // if we reach the root 
                 BTreeNode *newRoot = new BTreeNode(deg);
-                newRoot->keys[0] = current->keys[current->numKeysPerNode]; // add the smallest value in the right subtree to the root 
+                nodeCount++;
+                // smallest right subtree value (ss) 
+                Key_Records ss_value = fetchSSKey(newParent);
+                newRoot->keys[0] = ss_value; // add the smallest value in the right subtree to the root 
                 newRoot->child[0] = current;
                 newRoot->child[1] = newParent;
                 newRoot->isleaf = false;
@@ -220,13 +209,9 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
                 root = newRoot;
         }
         else{
-            insertParent(current -> keys[current -> numKeysPerNode], findParent(root, current), newParent); //recursively insert parent 
+            Key_Records ss_value = fetchSSKey(newParent);
+            insertParent(ss_value, findParent(root, current), newParent); //recursively insert parent 
         }
-
-
-
-
-    
 
     }
     return;
@@ -254,6 +239,15 @@ BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
 
 }
 
+Key_Records Btree::fetchSSKey(BTreeNode *current){
+    
+    // Find the smallest on the right subtree
+    while (!current->isleaf){
+        current = current->child[0];
+    }
+    return current->keys[0];
+
+}
 
 
 // Print the tree
@@ -297,9 +291,9 @@ int main(){
     RecordAddress address8 = {8, 40};
     int key9 = 7;
     RecordAddress address9 = {9, 20};
-    int key10 = 8;
+    int key10 = 0;
     RecordAddress address10 = {10, 20};
-    int key11 = 8;
+    int key11 = 0;
     RecordAddress address11 = {11, 40};
 
 
