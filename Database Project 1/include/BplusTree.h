@@ -45,8 +45,11 @@ class Btree
 
         // Helper functions 
         void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
+        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
 
-        void removeRecord(Key_Records key, BTreeNode* node);
+
+
+        void removeRecord(int key, BTreeNode* node);
 
         bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
 
@@ -72,11 +75,12 @@ class Btree
 
         } // constructor
 
-        void insert(Key_Records key);
+
+        void insert(int keyValue, RecordAddress recordAddress);
 
         std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
 
-        void removeRecord(Key_Records key);
+        void removeRecord(int key);
 
         int getDegree(){
             return deg;
@@ -89,8 +93,12 @@ class Btree
         BTreeNode* getRoot() const {
             return root;
             };
-        void printTree(BTreeNode* node, int level = 0);
-        void print(BTreeNode* node);
+
+
+        void printTree(BTreeNode *current);
+        BTreeNode *fetchRoot();
+        //void printTree(BTreeNode* node, int level = 0);
+        //void print(BTreeNode* node);
 
 };
 

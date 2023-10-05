@@ -289,18 +289,18 @@ int main(){
     RecordAddress address4 = {3, 20};  //duplicate 
     int key5 = 5;
     RecordAddress address5 = {8, 20};
-    int key6 = 6;
-    RecordAddress address6 = {6, 20};
-    int key7 = 9;
-    RecordAddress address7 = {7, 20};
-    int key8 = 3;
-    RecordAddress address8 = {8, 40};
-    int key9 = 7;
-    RecordAddress address9 = {9, 20};
-    int key10 = 8;
-    RecordAddress address10 = {10, 20};
-    int key11 = 8;
-    RecordAddress address11 = {11, 40};
+    // int key6 = 6;
+    // RecordAddress address6 = {6, 20};
+    // int key7 = 9;
+    // RecordAddress address7 = {7, 20};
+    // int key8 = 3;
+    // RecordAddress address8 = {8, 40};
+    // int key9 = 7;
+    // RecordAddress address9 = {9, 20};
+    // int key10 = 8;
+    // RecordAddress address10 = {10, 20};
+    // int key11 = 8;
+    // RecordAddress address11 = {11, 40};
 
 
     Btree treeNode(60) ;
@@ -309,14 +309,18 @@ int main(){
     treeNode.insert(key3, address3);
     treeNode.insert(key4, address4);
     treeNode.insert(key5, address5);
-    treeNode.insert(key6, address6);
-    treeNode.insert(key7, address7);
-    treeNode.insert(key8, address8);
-    treeNode.insert(key9, address9);
-    treeNode.insert(key10, address10);
-    treeNode.insert(key11, address11);
+    // treeNode.insert(key6, address6);
+    // treeNode.insert(key7, address7);
+    // treeNode.insert(key8, address8);
+    // treeNode.insert(key9, address9);
+    // treeNode.insert(key10, address10);
+    // treeNode.insert(key11, address11);
 
     treeNode.printTree(treeNode.fetchRoot());
+
+    treeNode.removeRecord(5);
+
+    // treeNode.printTree(treeNode.fetchRoot());
 
 
 

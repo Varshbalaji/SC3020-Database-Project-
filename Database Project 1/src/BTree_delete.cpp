@@ -6,15 +6,14 @@
 
 using namespace std; 
 
-void Btree::removeRecord(Key_Records key){
+void Btree::removeRecord(int key){
 
-    int keyToFind =  key.key_value;
     removeRecord(key, root);
 };
 
-void Btree::removeRecord(Key_Records key, BTreeNode* node){
+void Btree::removeRecord(int key, BTreeNode* node){
 
-    int keyToFind =  key.key_value;
+    int keyToFind =  key;
     
     if(node->isleaf)
 
