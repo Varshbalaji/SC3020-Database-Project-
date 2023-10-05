@@ -56,10 +56,28 @@ class Btree
 
         void insert(Key_Records key);
 
+        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
+        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
+        void printTree(BTreeNode *current);
+        BTreeNode *fetchRoot();
+
+        vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); //// Search for a key in the B+ tree and return associated values
+
         std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
 
         void removeRecord(Key_Records key);
 
+ 
+        // Helper functions for deletion and balancing
+        void removeFromNode(BTreeNode* node, int keyIndex);
+        void redistributeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode);
+        void mergeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
+        void redistributeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode);
+        void mergeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
+        void handleUnderflow(BTreeNode* node, BTreeNode* parent, int keyIndex);
+        int findKeyIndex(BTreeNode* node, int key);
+    
+};
 
 
  
@@ -88,4 +106,5 @@ class Btree
 };
 
 
-#endif
+
+#endif //BplusTree_H
