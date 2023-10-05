@@ -6,13 +6,15 @@
 
 using namespace std; 
 
-void BTree::removeRecord(Key_Records key){
+//Call for deletion from BTree (public)
+void Btree::removeRecord(Key_Records key){
 
     int keyToFind =  key.key_value;
-    removeRecord(key, root);
+    removeRecord(key, this.root);
 };
 
-void BTree::removeRecord(Key_Records key, BTreeNode* node){
+// Helper Function for internal (private)
+void Btree::removeRecord(Key_Records key, BTreeNode* node){
 
     int keyToFind =  key.key_value;
     
@@ -24,7 +26,7 @@ void BTree::removeRecord(Key_Records key, BTreeNode* node){
     {
         for(int i = 0; i<node->numKeysPerNode; i++)
         {
-            if(node->keys[i] >= keyToFind)
+            if(node->keys[i].key_value <= keyToFind)
             removeRecord(key, node->child[i+1]);
             // Condition of unbalanced child
             if(node->child[i]->numKeysPerNode < (this.degree+1)/2)
@@ -50,7 +52,8 @@ void BTree::removeRecord(Key_Records key, BTreeNode* node){
     
 };
 
-void BTree::treat_underflow(BTreeNode* node, BTreeNode* root)
+// Helper Function for rebalancing internal after delete 
+void Btree::treat_underflow(BTreeNode* node, BTreeNode* root)
 {
     if(node!=root)
     {
@@ -73,7 +76,8 @@ void BTree::treat_underflow(BTreeNode* node, BTreeNode* root)
     
 };
 
-BTreeNode* mergeInternalNodes(BTreeNode* node1, BTreeNode* node2, BTreeNode* parent)
+//Merge Internal nodes if they can be merged and return the 
+BTreeNode* Btree::mergeInternalNodes(BTreeNode* node1, BTreeNode* node2, BTreeNode* parent)
 {
     if(node1->numKeysPerNode + node2->numKeysPerNode <= this.degree)
     {
@@ -83,13 +87,13 @@ BTreeNode* mergeInternalNodes(BTreeNode* node1, BTreeNode* node2, BTreeNode* par
     {
         for(int i = 0; i<node2->numKeysPerNode; i++)
         {
-            insert(node2->child[i], node2->child[i], node1);
+            insert_into_leaf_node(node2->child[i], node2->child[i], node1);
         }
     }
-    return max(node1[key[0]],node2[key[0]]);
+    return max(node1->keys[0].key_value,node2->keys[0].key_value);
 }
 
-BTreeNode** findSiblings(BTreeNode* node, BTreeNode* root)
+BTreeNode** Btree::findSiblings(BTreeNode* node, BTreeNode* root)
 {
     BTreeNode* curr;
     BTreeNode* siblings[2];
@@ -124,7 +128,7 @@ BTreeNode** findSiblings(BTreeNode* node, BTreeNode* root)
 }
 
 
-bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
+bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
 {
     bool rebalanced = false;
     if(node1->numKeysPerNode < (this.degree+1)/2)
@@ -133,7 +137,7 @@ bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
         rebalanced = false;
         else
         {
-            insert(node2->child[0], node2->keys[0], node1);
+            insert_into_leaf_node(node2->child[0], node2->keys[0], node1);
             remove(node2->keys[0], node2);
             rebalanced = true;
         }
@@ -145,7 +149,7 @@ bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
         rebalanced = false;
         else
         {
-            insert(node1->child[node1->numKeysPerNode-1], node1->keys[node1->numKeysPerNode-1], node2);
+            insert_into_leaf_node(node1->child[node1->numKeysPerNode-1], node1->keys[node1->numKeysPerNode-1], node2);
             remove(node1->keys[node1->numKeysPerNode-1], node1);
             rebalanced = true;
         }
@@ -153,7 +157,7 @@ bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
     return rebalanced;
 };
 
-int BTree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
+int Btree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
 {
     if(node1->numKeysPerNode + node2->numKeysPerNode <= this.degree)
     {
@@ -163,7 +167,7 @@ int BTree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
     {
         for(int i = 0; i<node2->numKeysPerNode; i++)
         {
-            insert(node2->child[i], node2->child[i], node1);
+            insert_into_leaf_node(node2->child[i], node2->keys[i], node1);
         }
     }
     return max(node1[key[0]],node2[key[0]]);
