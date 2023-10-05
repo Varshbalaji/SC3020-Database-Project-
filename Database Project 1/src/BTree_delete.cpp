@@ -6,19 +6,19 @@
 
 using namespace std; 
 
-void BTree::removeRecord(Key_Records key){
+void Btree::removeRecord(Key_Records key){
 
     int keyToFind =  key.key_value;
     removeRecord(key, root);
 };
 
-void BTree::removeRecord(Key_Records key, BTreeNode* node){
+void Btree::removeRecord(Key_Records key, BTreeNode* node){
 
     int keyToFind =  key.key_value;
     
     if(node->isleaf)
     {
-        remove(keyToFind, node);
+        remove_key_in_leaf_node(node,keyToFind);  //remove_key_in_leaf_node(BTreeNode* leafNode, int key)
     }
     else
     {
@@ -33,11 +33,11 @@ void BTree::removeRecord(Key_Records key, BTreeNode* node){
                 {
                     if(i>0)
                     {
-                    removeFromInternal(mergeTwoNodes(node->child[i-1], node->child[i]))
+                    remove_key_in_internal_node(node->child[i],mergeTwoNodes(node->child[i-1],node->child[i]))//void remove_key_in_internal_node(BTreeNode* internalNode, int key);
                     }
                     if(i<node->numKeysPerNode)
                     {
-                    removeFromInternal(mergeTwoNodes(node->child[i+1], node->child[i]))
+                    remove_key_in_internal_node( node->child[i],mergeTwoNodes(node->child[i+1], node->child[i]))
                     }
                     {
 
@@ -51,7 +51,7 @@ void BTree::removeRecord(Key_Records key, BTreeNode* node){
 
 
 
-bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
+bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
 {
     bool rebalanced = false;
     if(node1->numKeysPerNode < (this.degree+1)/2)
@@ -80,7 +80,7 @@ bool BTree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
     return rebalanced;
 };
 
-int BTree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
+int Btree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
 {
     if(node1->numKeysPerNode + node2->numKeysPerNode <= this.degree)
     {
@@ -90,7 +90,8 @@ int BTree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
     {
         for(int i = 0; i<node2->numKeysPerNode; i++)
         {
-            insert(node2->child[i], node2->child[i], node1);
+            insert_ChildNode_in_ParentNode(node1,node2->child[i], node2->keys[i].key_value); //void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+
         }
     }
     return max(node1[key[0]],node2[key[0]]);
