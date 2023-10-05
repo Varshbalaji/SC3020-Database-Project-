@@ -42,6 +42,8 @@ class Btree
         int deg; //degree
         BTreeNode* root;
         int nodeCount;
+
+        // Helper functions 
         void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
 
         void removeRecord(Key_Records key, BTreeNode* node);
@@ -57,6 +59,8 @@ class Btree
         void remove_key_in_internal_node(BTreeNode* internalNode, int key);
 
         void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+
+
         
     public:
         Btree(unsigned int BlockSize){
@@ -66,40 +70,29 @@ class Btree
             unsigned int spaceForKeys = BlockSize - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
             deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
-
         } // constructor
 
         void insert(Key_Records key);
-
-        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
-        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
-        void printTree(BTreeNode *current);
-        BTreeNode *fetchRoot();
-
-        vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); //// Search for a key in the B+ tree and return associated values
 
         std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
 
         void removeRecord(Key_Records key);
 
- 
-        // Helper functions for deletion and balancing
-        void removeFromNode(BTreeNode* node, int keyIndex);
-        void redistributeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode);
-        void mergeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
-        void redistributeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode);
-        void mergeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
-        void handleUnderflow(BTreeNode* node, BTreeNode* parent, int keyIndex);
-        int findKeyIndex(BTreeNode* node, int key);
-    
+        int getDegree(){
+            return deg;
+            };
+
+        void setRoot(BTreeNode* newRoot) {
+            root = newRoot;
+            };
+
+        BTreeNode* getRoot() const {
+            return root;
+            };
+        void printTree(BTreeNode* node, int level = 0);
+        void print(BTreeNode* node);
+
 };
 
 
- 
-    
-        // Helper functions 
-       
-
-
-
-#endif //BplusTree_H
+#endif

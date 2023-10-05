@@ -218,44 +218,235 @@ std::pair<BTreeNode*, BTreeNode*> findAdjacentSiblings(BTreeNode* root, BTreeNod
 
 
 
-int main()
-{
-
-    // Create a B+ tree instance
-    Btree btreeInstance(512); // Assuming a block size of 512
-
-    // Create nodes and set their key values
-    Key_Records node1;
-    node1.key_value = 1;
-
-    Key_Records node2;
-    node2.key_value = 2;
-
-    Key_Records node3;
-    node3.key_value = 3;
-
-    // Manually construct the tree structure
-    BTreeNode* root = new BTreeNode(btreeInstance.getDegree());
-    root->isleaf = false;
-    root->keys[0] = node2; // Set the root key
-    root->numKeysPerNode = 1;
-    root->child[0] = new BTreeNode(btreeInstance.getDegree());
-    root->child[1] = new BTreeNode(btreeInstance.getDegree());
-    root->child[0]->keys[0] = node1; // Set the left child key
-    root->child[0]->numKeysPerNode = 1;
-    root->child[1]->keys[0] = node3; // Set the right child key
-    root->child[1]->numKeysPerNode = 1;
-
-    // Set the root node in the B+ tree instance
-    btreeInstance.setRoot(root);
-
-    // Now, you have manually constructed a B+ tree with nodes 1, 2, and 3
-    // You can test your functions on this instance
-
-    btreeInstance.print();
-
-    return 0;
-}
 
 
 
+
+
+
+
+
+
+        // void Btree::printTree(BTreeNode* node, int level /* = 0 */) {
+        //         if (node == nullptr) {
+        //             return;
+        //         }
+
+        //         // Recursively print the right child
+        //         printTree(node->child[node->numKeysPerNode]);
+
+        //         // Print the current node's keys at this level
+        //         for (int i = 0; i < node->numKeysPerNode; ++i) {
+        //             for (int j = 0; j < level; ++j) {
+        //                 cout << "  "; // Indentation based on the level
+        //             }
+        //             cout << node->keys[i].key_value << endl;
+        //         }
+
+        //         // Recursively print the left children
+        //         for (int i = node->numKeysPerNode - 1; i >= 0; --i) {
+        //             printTree(node->child[i], level + 1);
+        //         }
+        //     }
+
+        void Btree::printTree(BTreeNode* node, int level /* = 0 */) {
+            if (node == nullptr) {
+                return;
+            }
+
+            // Print the current node's keys at this level
+            for (int i = 0; i < node->numKeysPerNode; ++i) {
+                for (int j = 0; j < level; ++j) {
+                    cout << "  "; // Indentation based on the level
+                }
+                cout << node->keys[i].key_value << endl;
+            }
+
+            // Recursively print the child nodes
+            if (!node->isleaf) {
+                for (int i = 0; i <= node->numKeysPerNode; ++i) {
+                    printTree(node->child[i], level + 1);
+                }
+            }
+        }
+
+
+
+        void Btree::print(BTreeNode* node) {
+                cout << "B+ Tree:" << endl;
+                printTree(node,0);
+            }
+
+
+
+
+
+
+
+
+
+// int main() {
+//     // Create a B+ tree instance with a block size of 512
+//     Btree btreeInstance(512);
+
+//     // Create nodes and set their key values
+//     Key_Records node1;
+//     node1.key_value = 1;
+
+//     Key_Records node2;
+//     node2.key_value = 2;
+
+//     Key_Records node3;
+//     node3.key_value = 3;
+
+//     // Manually construct the tree structure
+//     BTreeNode* root = new BTreeNode(btreeInstance.getDegree());
+//     root->isleaf = false;
+//     root->keys[0] = node2; // Set the root key
+//     root->numKeysPerNode = 1;
+//     root->child[0] = new BTreeNode(btreeInstance.getDegree());
+//     root->child[1] = new BTreeNode(btreeInstance.getDegree());
+//     root->child[0]->keys[0] = node1; // Set the left child key
+//     root->child[0]->numKeysPerNode = 1;
+//     root->child[1]->keys[0] = node3; // Set the right child key
+//     root->child[1]->numKeysPerNode = 1;
+
+//     // Set the root node in the B+ tree instance (if needed)
+//      btreeInstance.setRoot(root); // Comment this line
+
+//     // Now, you have manually constructed a B+ tree with nodes 1, 2, and 3
+//     // You can test your functions on this instance
+
+//     // Call the print function on the B+ tree instance
+//     btreeInstance.print(root);
+
+//     return 0;
+// }
+
+// int main() {
+//     // Create a B+ tree instance with a block size of 512 and degree 3
+//     Btree btreeInstance(3);
+
+//     // Create nodes and set their key values
+//     Key_Records node1, node2, node3, node4, node5, node6, node7, node8, node9, node10;
+//     node1.key_value = 1;
+//     node2.key_value = 2;
+//     node3.key_value = 3;
+//     node4.key_value = 4;
+//     node5.key_value = 5;
+//     node6.key_value = 6;
+//     node7.key_value = 7;
+//     node8.key_value = 8;
+//     node9.key_value = 9;
+//     node10.key_value = 10;
+
+//     // Manually construct the tree structure
+//     BTreeNode* root = new BTreeNode(btreeInstance.getDegree());
+//     root->isleaf = false;
+//     root->keys[0] = node3; // Set the root key
+//     root->keys[1] = node7; // Set the second key in the root
+//     root->numKeysPerNode = 2;
+
+//     // Create the left internal node (3)
+//     BTreeNode* leftInternal = new BTreeNode(btreeInstance.getDegree());
+//     leftInternal->isleaf = false;
+//     leftInternal->keys[0] = node3;
+//     leftInternal->numKeysPerNode = 1;
+
+//     // Create the right internal node (5)
+//     BTreeNode* rightInternal = new BTreeNode(btreeInstance.getDegree());
+//     rightInternal->isleaf = false;
+//     rightInternal->keys[0] = node5;
+//     rightInternal->numKeysPerNode = 1;
+
+//     // Create the left leaf node with keys (1, 2)
+//     BTreeNode* leftLeaf = new BTreeNode(btreeInstance.getDegree());
+//     leftLeaf->isleaf = true;
+//     leftLeaf->keys[0] = node1;
+//     leftLeaf->keys[1] = node2;
+//     leftLeaf->numKeysPerNode = 2;
+
+//     // Create the right leaf node with keys (3, 4)
+//     BTreeNode* rightLeaf = new BTreeNode(btreeInstance.getDegree());
+//     rightLeaf->isleaf = true;
+//     rightLeaf->keys[0] = node3;
+//     rightLeaf->keys[1] = node4;
+//     rightLeaf->numKeysPerNode = 2;
+
+//     // Create the second left leaf node with keys (5, 6)
+//     BTreeNode* leftLeaf2 = new BTreeNode(btreeInstance.getDegree());
+//     leftLeaf2->isleaf = true;
+//     leftLeaf2->keys[0] = node5;
+//     leftLeaf2->keys[1] = node6;
+//     leftLeaf2->numKeysPerNode = 2;
+
+//     // Create the second right leaf node with keys (7, 8)
+//     BTreeNode* rightLeaf2 = new BTreeNode(btreeInstance.getDegree());
+//     rightLeaf2->isleaf = true;
+//     rightLeaf2->keys[0] = node7;
+//     rightLeaf2->keys[1] = node8;
+//     rightLeaf2->numKeysPerNode = 2;
+
+//     // Create the third internal node (9)
+//     BTreeNode* rightInternal2 = new BTreeNode(btreeInstance.getDegree());
+//     rightInternal2->isleaf = false;
+//     rightInternal2->keys[0] = node9;
+//     rightInternal2->numKeysPerNode = 1;
+
+//     // Create the third right leaf node with keys (9, 10)
+//     BTreeNode* rightLeaf3 = new BTreeNode(btreeInstance.getDegree());
+//     rightLeaf3->isleaf = true;
+//     rightLeaf3->keys[0] = node9;
+//     rightLeaf3->keys[1] = node10;
+//     rightLeaf3->numKeysPerNode = 2;
+
+//     // Set child nodes in the root
+//     root->child[0] = leftLeaf;
+//     root->child[1] = leftInternal;
+//     root->child[2] = rightInternal;
+
+//     // Set child nodes in the internal nodes
+//     leftInternal->child[0] = leftLeaf;
+//     leftInternal->child[1] = rightLeaf;
+//     rightInternal->child[0] = leftLeaf2;
+//     rightInternal->child[1] = rightLeaf2;
+
+//     rightInternal2->child[0] = rightLeaf3;
+//     rightInternal2->child[1] = rightInternal;
+
+//     // Set the root node in the B+ tree instance
+//     btreeInstance.setRoot(root);
+
+//     // Call the print function on the B+ tree instance
+//     btreeInstance.print(root);
+
+//     return 0;
+// }
+
+
+// int main() {
+//     // Create a B+ tree instance with a degree of 3
+//     Btree btreeInstance(3);
+
+//     // Create keys from 1 to 12
+//     Key_Records keys[12];
+//     for (int i = 0; i < 12; ++i) {
+//         keys[i].key_value = i + 1;
+//     }
+
+//     // Manually construct the B+ tree structure
+//     BTreeNode* root = new BTreeNode(btreeInstance.getDegree());
+//     root->isleaf = true;
+//     for (int i = 0; i < 12; ++i) {
+//         root->keys[i] = keys[i];
+//     }
+//     root->numKeysPerNode = 12;
+
+//     // Set the root node in the B+ tree instance
+//     btreeInstance.setRoot(root);
+
+//     // Call the print function on the B+ tree instance
+//     btreeInstance.print(root);
+
+//     return 0;
+// }
