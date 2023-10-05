@@ -42,6 +42,21 @@ class Btree
         int deg; //degree
         BTreeNode* root;
         int nodeCount;
+        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
+
+        void removeRecord(Key_Records key, BTreeNode* node);
+
+        bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
+
+        int mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
+
+        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
+
+        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
+
+        void remove_key_in_internal_node(BTreeNode* internalNode, int key);
+
+        void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
         
     public:
         Btree(unsigned int BlockSize){
@@ -64,23 +79,8 @@ class Btree
 
  
     
-    private:
         // Helper functions 
-        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
-
-        void removeRecord(Key_Records key, BTreeNode* node);
-
-        bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
-
-        int mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
-
-        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
-
-        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
-
-        void remove_key_in_internal_node(BTreeNode* internalNode, int key);
-
-        void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+       
 
 
 
