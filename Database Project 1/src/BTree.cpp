@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "BplusTree.h"
 
+
 using namespace std;
 
 struct RecordArrayDuplicateKey{
@@ -112,32 +113,62 @@ void remove_key_in_internal_node(BTreeNode* internalNode, int key) {
 }
 
 
+//Helper function to get back 2 node pointers adjacent to the non-leaf node given (divided into 2 functions )
+// Function A) to find the parent and index of the node
+void findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index) {
+    if (current == nullptr) {
+        return;
+    }
 
+    if (current == nodeToFind) {
+        // 'current' is the node we're looking for
+        // 'prev' is its parent
+        parent = prev; // 'prev' is the parent
+        for (int i = 0; i <= parent->numKeysPerNode; ++i) {
+            if (parent->child[i] == nodeToFind) {
+                index = i;
+                break;
+            }
+        }
+        return;
+    }
 
+    // Recursively search in child nodes
+    for (int i = 0; i <= current->numKeysPerNode; ++i) {
+        findParentAndIndex(root, current->child[i], current, nodeToFind, parent, index);
+    }
+}
 
+//Function B) that uses FunctionA)
+std::pair<BTreeNode*, BTreeNode*> findAdjacentSiblings(BTreeNode* root, BTreeNode* node) {
+    BTreeNode* leftSibling = nullptr;
+    BTreeNode* rightSibling = nullptr;
 
+    if (root == nullptr || node == nullptr || node->isleaf) {
+        // Invalid input or the node is a leaf node
+        return std::make_pair(leftSibling, rightSibling);
+    }
 
+    BTreeNode* parent = nullptr;
+    int index = -1;
 
+    // Start the search from the root
+    findParentAndIndex(root, root, nullptr, node, parent, index);
 
+    if (parent != nullptr) {
+        if (index > 0) {
+            // 'node' has a left sibling
+            leftSibling = parent->child[index - 1];
+        }
 
+        if (index < parent->numKeysPerNode) {
+            // 'node' has a right sibling
+            rightSibling = parent->child[index + 1];
+        }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return std::make_pair(leftSibling, rightSibling);
+}
 
 
 
