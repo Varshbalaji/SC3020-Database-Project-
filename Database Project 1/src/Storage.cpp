@@ -25,7 +25,7 @@ Storage::Storage(unsigned int storageSize,unsigned int blockSize)
 
 }
 
-RecordAddress Storage::insertRecord(unsigned int recordSize, char *Record){
+RecordAddress Storage::insertRecord(unsigned int recordSize, void *record){
     RecordAddress recordAddress;
     unsigned int splitRecordSize, spillOverRecordSize;
 
@@ -34,7 +34,7 @@ RecordAddress Storage::insertRecord(unsigned int recordSize, char *Record){
         throw invalid_argument("Record size Invalid!");
     }
  
-    if (CurrentFreeBlockOffset + recordSize > BlockSize) {  // Handle Spanned records across blocks
+    if (  (CurrentFreeBlockOffset < BlockSize) && (CurrentFreeBlockOffset + recordSize > BlockSize)  ) {  // Handle Spanned records across blocks
 
         // We need to span and fill in current block to the limit and increment current block to fill. 
         // Validate if are at limit with Storage and raise exeception
@@ -44,25 +44,33 @@ RecordAddress Storage::insertRecord(unsigned int recordSize, char *Record){
             throw invalid_argument("No More Free Space!");
         }
         recordAddress = {CurrentFreeBlockNumber, CurrentFreeBlockOffset};  // Save record address before spanning        
-        splitRecordSize = BlockSize - CurrentFreeBlockOffset; // Fill splitRecordSize bytes in current block free space
-        spillOverRecordSize = recordSize - splitRecordSize;   // Fill spillOverRecordSize  bytes in next block to span across
+        splitRecordSize = BlockSize - CurrentFreeBlockOffset; // Fill splitRecordSize dataRecord in current block free space
+        spillOverRecordSize = recordSize - splitRecordSize;   // Fill spillOverRecordSize  dataRecord in next block to span across
 
         blockRecordAddress = StoragePtr + ( (CurrentFreeBlockNumber - 1) * BlockSize) + CurrentFreeBlockOffset;
-        memcpy((char *)blockRecordAddress , Record, splitRecordSize); // Copied to previous Block
+        memcpy(blockRecordAddress , record, splitRecordSize); // Copied to previous Block
 
         CurrentFreeBlockNumber ++;                                    // Go to next block
         CurrentFreeBlockOffset = 0;                                   // Start at 0 offset in next block
 
         blockRecordAddress = StoragePtr + ( (CurrentFreeBlockNumber - 1) * BlockSize) + CurrentFreeBlockOffset;
-        memcpy((char *)blockRecordAddress , (Record + splitRecordSize), spillOverRecordSize); // advance record pointer and fll rest of record in next block
+        memcpy((char *)blockRecordAddress , (record + splitRecordSize), spillOverRecordSize); // advance record pointer and fll rest of record in next block
         CurrentFreeBlockOffset += spillOverRecordSize;
     }
-    else { // We have space to fill the record in current block
+    else {
+        if (CurrentFreeBlockOffset == BlockSize) {
+                
+            if (( CurrentFreeBlockNumber + 1) > MaxNumberOfBlocks) {  
+                cout << "Fatal Error: No more free space in memory!";
+                throw invalid_argument("No More Free Space!");
+            }
+            CurrentFreeBlockNumber ++;                                    // Go to next block
+            CurrentFreeBlockOffset = 0;                                   // Start at 0 offset in next block
+        }
         blockRecordAddress = StoragePtr + ( (CurrentFreeBlockNumber - 1) * BlockSize) + CurrentFreeBlockOffset;
-        memcpy((char *)blockRecordAddress , Record, recordSize);
+        memcpy((char *)blockRecordAddress , record, recordSize);
         recordAddress = {CurrentFreeBlockNumber, CurrentFreeBlockOffset};
-        CurrentFreeBlockOffset += recordSize;
-
+        CurrentFreeBlockOffset += recordSize;        
     }
     TotalNumberOfRecords ++;
     return recordAddress;
@@ -71,10 +79,25 @@ RecordAddress Storage::insertRecord(unsigned int recordSize, char *Record){
 bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
     try{
         // Get Address of the Record to be deleted within the block 
-        blockRecordAddress = StoragePtr + ( (recordAddress.blockNumber - 1) * BlockSize) + recordAddress.offset;
+        char *dataRecord;
+        dataRecord = StoragePtr + ( (recordAddress.blockNumber - 1) * BlockSize) + recordAddress.offset;
+        if (recordAddress.blockNumber > MaxNumberOfBlocks){
+            cout << "Error: Record to be deleted is beyond allocated memory ! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+            return false;
+        }
+        if (recordAddress.blockNumber > CurrentFreeBlockNumber ||
+            (recordAddress.blockNumber == CurrentFreeBlockNumber && recordAddress.offset >= CurrentFreeBlockOffset)){ 
+            cout << "Error: Trying to delete non-existent record at Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+            return false;
+        }
+
+        if (dataRecord[0] == '\000'){ 
+            cout << "Error: Trying to delete record that has been deleted !" << "\n";
+            return false;
+        }
         
         // 
-        memset((char *)blockRecordAddress, '\0', recordSize); // Fill Empty space with nulls
+        memset(dataRecord, '\0', recordSize); // Fill Empty space with nulls
 
         TotalNumberOfRecords --;
         return true;
@@ -86,17 +109,25 @@ bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
     }
 }
 
-char* Storage::getRecord(RecordAddress recordAddress, unsigned int recordSize){
-    char *Record;
-    Record = StoragePtr + ((recordAddress.blockNumber -1) * BlockSize ) + recordAddress.offset;
-    if (Record == "/0"){
-        return "/0";
+Record* Storage::getRecord(RecordAddress recordAddress, unsigned int recordSize){
+    char *dataRecord;
+    dataRecord  = StoragePtr + ((recordAddress.blockNumber -1) * BlockSize ) + recordAddress.offset;
+
+    if (recordAddress.blockNumber > MaxNumberOfBlocks){
+        cout << "Error: Record Address to be fetched is beyond allocated memory ! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+        return nullptr;
     }
-    else if (Record > MaxAddress){
-        cout << "Error: Record Address to be fetched is invalid and out of bound !" << "\n";
+    if (recordAddress.blockNumber > CurrentFreeBlockNumber ||
+        (recordAddress.blockNumber == CurrentFreeBlockNumber && recordAddress.offset >= CurrentFreeBlockOffset)){ 
+        cout << "Error: Trying to get non-existent record at Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+        return nullptr;
     }
 
-    return Record;
+    if (dataRecord[0] == '\000'){ 
+        return nullptr;
+    }
+
+    return ((Record *) dataRecord);
 }
 
 RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigned int recordSize){
@@ -105,13 +136,15 @@ RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigne
     try{
         nextRecordAddress.blockNumber = recordAddress.blockNumber;
         nextRecordAddress.offset = recordAddress.offset;
+        //cout << "in getNextRecordAddres " << nextRecordAddress.blockNumber << "**" << nextRecordAddress.offset;
         while (!exitNextRecordSearch){
             nextRecordAddress.offset  +=  recordSize; // next record's offset is current record offset plus recordSize
             if ( nextRecordAddress.offset  >= BlockSize){ // if the next record begins in the next block beacuse of deleted records in between 
                 nextRecordAddress.offset  -= BlockSize; // offset of next record in next block 
                 nextRecordAddress.blockNumber += 1;
             }
-            if (nextRecordAddress.blockNumber > MaxNumberOfBlocks){ //possibility that that our block number is out of bounds for next record due to deletion
+            if (nextRecordAddress.blockNumber > CurrentFreeBlockNumber ||
+                (nextRecordAddress.blockNumber == CurrentFreeBlockNumber && nextRecordAddress.offset >= CurrentFreeBlockOffset)){ //possibility that that our block number and/or block offset is pointing to end of recordds
                 exitNextRecordSearch = true;
                 nextRecordAddress.blockNumber = -1;
                 nextRecordAddress.offset = -1;
@@ -119,12 +152,9 @@ RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigne
             }
             blockRecordAddress = StoragePtr + ((nextRecordAddress.blockNumber -1) * BlockSize ) + nextRecordAddress.offset ; // absolute address of next record
             char * startCheck = blockRecordAddress; //Check for if the next record address we derived is the address of a deleted record 
-            if  (startCheck != "/0"){
+            if  (startCheck[0] != '\000'){
                 exitNextRecordSearch = true;
             }
-
-
-
         }
        
     }
@@ -132,11 +162,13 @@ RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigne
         cout << "Error: Fetching NextRecor d failed!" << "\n";
         cout << e.what() << "\n";
     }
+    
+    return nextRecordAddress;
 }
 
 
 Storage::~Storage()  // Destructor method
 {
-    delete StoragePtr;  
+//    delete this->StoragePtr;  
     StoragePtr = nullptr;
 }
