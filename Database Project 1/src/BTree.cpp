@@ -35,8 +35,10 @@ void  Btree::insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddr
     int insertIndex = -1; // Index to insert the new key
 
     // Find the correct index to insert the new key
-    for (int i = 0; i < leafNode->numKeysPerNode; ++i) {
-        if (key < leafNode->keys[i].key_value) {
+    for (int i = 0; i <= leafNode->numKeysPerNode; ++i) {
+
+        if (key < leafNode->keys[i].key_value || leafNode->numKeysPerNode<=i) {
+
             insertIndex = i;
             break;
         }
@@ -56,6 +58,10 @@ void  Btree::insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddr
 bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
 {
     bool rebalanced = false;
+
+
+
+
     if(node1->numKeysPerNode < (this->deg+1)/2)
     {
         if(node2->numKeysPerNode <= (this->deg+1)/2)
@@ -64,6 +70,7 @@ bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
         {
             if(node1->isleaf)
             {
+               
                 insert_in_leaf_node(node1, node2->keys[0].key_value, &(node2->keys[0].storage_array));
                 remove_key_in_leaf_node(node2, node2->keys[0].key_value);
             }
@@ -82,6 +89,7 @@ bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2)
         rebalanced = false;
         else
         {
+            
             if(node1->isleaf)
             {
                 insert_in_leaf_node(node2,  node1->keys[node1->numKeysPerNode-1].key_value, &(node1->keys[node1->numKeysPerNode-1].storage_array));
@@ -270,26 +278,37 @@ void Btree::removeRecord(int key, BTreeNode* node){
     else
     {
         int i = 0;
-        for( i = 0; i < node->numKeysPerNode; i++)
+
+        for( i = 0; i <node->numKeysPerNode; i++)
         {
-            
+    
             if(node->keys[i].key_value >= keyToFind)
-            removeRecord(key, node->child[i]);
-            // Condition of unbalanced child
-            if(node->child[i]->numKeysPerNode < (this->deg+1)/2)
-            {
-                if(!((i>0 && tryBorrowing(node->child[i-1], node->child[i])) || (i<node->numKeysPerNode && tryBorrowing(node->child[i+1], node->child[i]))))
+            {   
+                
+                removeRecord(key, node->child[i]);
+                
+                // Condition of unbalanced child
+                if(node->child[i]->numKeysPerNode < (this->deg+1)/2)
                 {
-                    if(i > 0)
-                    remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i-1], node->child[i]));
-                    else if(i < node->numKeysPerNode) // Case for 
-                    remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i+1], node->child[i]));
-  
-                }              
+                    
+                    if(!((i>0 && tryBorrowing(node->child[i-1], node->child[i])) || (i<node->numKeysPerNode && tryBorrowing(node->child[i],node->child[i+1]))))
+                    {
+                        if(i > 0)
+                        remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i-1], node->child[i]));
+                        else if(i < node->numKeysPerNode) // Case for 
+                        {
+                        cout<<"ZŹ`"<<endl;
+                        cout<<"ZŹ`"<<endl;
+                        remove_key_in_internal_node(node->child[i], mergeTwoNodes(node->child[i+1], node->child[i]));
+
+                        }
+    
+                    }              
+                }
             }
         }
-            removeRecord(key, node->child[i+1]);
-            if(node->child[i+1]->numKeysPerNode < (this->deg+1)/2)
+            removeRecord(key, node->child[i]);
+            if(node->child[i]->numKeysPerNode < (this->deg+1)/2)
             {
                 if(!((i>0 && tryBorrowing(node->child[i], node->child[i+1])) || (i<node->numKeysPerNode && tryBorrowing(node->child[i+1], node->child[i]))))
                 {
@@ -308,7 +327,6 @@ void Btree::removeRecord(int key, BTreeNode* node){
 
 void Btree::removeRecord(int key){
 
-    // cout<<"done";
     removeRecord(key, root);
 }
 
@@ -593,7 +611,9 @@ int main(){
 
     treeNode.printTree(treeNode.fetchRoot());
 
-    treeNode.removeRecord(5);
+    treeNode.removeRecord(2);
+    treeNode.printTree(treeNode.fetchRoot());
+    treeNode.removeRecord(1);
 
     treeNode.printTree(treeNode.fetchRoot());
 
