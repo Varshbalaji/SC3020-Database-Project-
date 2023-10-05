@@ -35,7 +35,8 @@ struct BTreeNode{
 
 };
 
-class Btree{
+class Btree
+{
 
     private:
         int deg; //degree
@@ -55,16 +56,17 @@ class Btree{
 
         void insert(int key, RecordAddress address);//// Insert a key-value pair into the B+ tree
 
-        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
+        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
+        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
+        void printTree(BTreeNode *current);
+        BTreeNode *fetchRoot();
 
-        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); //// Search for a key in the B+ tree and return associated values
+        vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); //// Search for a key in the B+ tree and return associated values
 
         void remove(int key);   // Delete a key from the B+ tree
 
         void print();       // Print the B+ tree for debugging 
 
-
-    private:
         // Helper functions for deletion and balancing
         void removeFromNode(BTreeNode* node, int keyIndex);
         void redistributeLeafNodes(BTreeNode* leftNode, BTreeNode* rightNode);
@@ -73,6 +75,7 @@ class Btree{
         void mergeInternalNodes(BTreeNode* leftNode, BTreeNode* rightNode, BTreeNode* parent, int parentKeyIndex);
         void handleUnderflow(BTreeNode* node, BTreeNode* parent, int keyIndex);
         int findKeyIndex(BTreeNode* node, int key);
-    };
+    
+};
 
-#endif
+#endif //BplusTree_H
