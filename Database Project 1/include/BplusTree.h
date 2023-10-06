@@ -38,8 +38,8 @@ struct BTreeNode{
 class Btree
 {
 
-    public:
-    // private:
+    // public:
+    private:
         int deg; //degree
         BTreeNode* root;
         int nodeCount;
@@ -72,7 +72,7 @@ class Btree
 
 
         
-    // public:
+    public:
         Btree(unsigned int BlockSize){
             root = nullptr;
             nodeCount =0;
