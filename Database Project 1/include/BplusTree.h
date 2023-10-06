@@ -7,7 +7,7 @@
 
 struct Key_Records{
     
-    float key_value; 
+    int key_value; 
     vector<RecordAddress> storage_array;
 
 };
@@ -43,6 +43,7 @@ class Btree
         int nodeCount;
         int nodesAccessed;
         Storage *diskStorage;
+        int recordCount;
 
         // Deletion Helper functions 
         void treat_underflow(BTreeNode *node);
@@ -60,18 +61,22 @@ class Btree
 
         void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
 
+        int mergeInternalNodes(BTreeNode* node1, BTreeNode* node2); 
+        void insertKey_Useless(BTreeNode* node, int key); 
+        bool tryBorrowingInternal(BTreeNode* node1, BTreeNode* node2);
+
 
         Btree(Storage *diskStorage){
             root = nullptr;
             nodeCount =0;
-            deg = 0;
+            deg = 10;
             this->diskStorage = diskStorage;
             unsigned int spaceForKeys = diskStorage->getBlockSize() - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
-            deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
+            // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
 
-        void insert(float keyValue, RecordAddress recordAddres);
+        void insert(int keyValue, RecordAddress recordAddres);
 
         //Insert Helper Functions
         void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);

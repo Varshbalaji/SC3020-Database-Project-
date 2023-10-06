@@ -28,7 +28,7 @@ int main() {
     unsigned int memorySizeMB = 100;                  // MB
     unsigned int recordLength = sizeof(Record);     // Bytes
     unsigned int blockSize = 400;                    // Bytes
-    string gamesDataFile = "games.txt";
+    string gamesDataFile = "games_Small.txt";
 
     // Debug purposes
     // printKeys(&diskStorage,recordLength);
@@ -64,11 +64,11 @@ int main() {
     recordAddress.offset = 0;
 
     tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage.getRecord(recordAddress,recordLength);
-    tree.insert(dataRecord->FG_PCT_home, recordAddress);
+    tree.insert(dataRecord->teamID, recordAddress);
 
     while (dataRecord != nullptr) {
 
-        tree.insert(dataRecord->FG_PCT_home, recordAddress);
+        tree.insert(dataRecord->teamID, recordAddress);
 
         numberOfRecords++;
         totalNumberOfDataBlocksAccessed +=  numberOfDataBlocksAccessed;
@@ -83,11 +83,39 @@ int main() {
     }
     cout << "number of records"<< numberOfRecords << "\n\n";
     cout << "TREE START..."<<endl;
+    // tree.removeRecord(1610612745)<<endl;
+    // tree.removeRecord(1610612745)<<endl;
+    // tree.removeRecord(1610612738)<<endl;
+    // tree.removeRecord(1610612751)<<endl;
+    // tree.removeRecord(1610612752)<<endl;
+    // tree.removeRecord(1610612745)<<endl;
+    // tree.removeRecord(1610612750)<<endl;
+    // tree.removeRecord(1610612760)<<endl;
+    // tree.removeRecord(1610612746)<<endl;
+    // tree.removeRecord(1610612765)<<endl;
+    // tree.removeRecord(1610612748)<<endl;
+    // tree.removeRecord(1610612756)<<endl;
+    // tree.removeRecord(1610612743)<<endl;
+    // tree.removeRecord(1610612754)<<endl;
+    // tree.removeRecord(1610612761)<<endl;
+    // tree.removeRecord(1610612747)<<endl;
+    // tree.removeRecord(1610612759)<<endl;
+    // tree.removeRecord(1610612749)<<endl;
+    // tree.removeRecord(1610612766)<<endl;
+    // tree.removeRecord(1610612741)<<endl;
+    // tree.removeRecord(1610612742)<<endl;
+    // tree.removeRecord(1610612763)<<endl;
+    // tree.removeRecord(1610612753)<<endl;
+    // tree.removeRecord(1610612764)<<endl;
+    tree.removeRecord(1610612757)<<endl;
+    // tree.removeRecord(1610612744)<<endl;
 
+    cout <<"numberOfRecords: "<< numberOfRecords <<"\n";
+    cout <<"recordCount: "<< tree.recordCount <<"\n";
    
     tree.printTree(tree.fetchRoot());
     cout << "RANGE" << "\n";
-    vector<Key_Records> searchResult = tree.search(0.6,true,1);
+    vector<Key_Records> searchResult = tree.search(1610612757,false,0);
     cout << "lalala"<<searchResult.size()<<"\n";
     for(int i=0; i<searchResult.size(); i++){
         cout<<searchResult[i].key_value<<"\n";
