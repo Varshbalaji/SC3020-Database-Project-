@@ -46,6 +46,8 @@ class Btree
         // Deletion Helper functions 
         void treat_underflow(BTreeNode *node);
         void removeRecord(int key, BTreeNode* node);
+        void insertKey_Useless(BTreeNode* node, int key);
+        int mergeInternalNodes(BTreeNode* node1, BTreeNode* node2);
 
         bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
 
@@ -58,6 +60,7 @@ class Btree
         void remove_key_in_internal_node(BTreeNode* internalNode, int key);
 
         void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+        bool tryBorrowingInternal(BTreeNode* node1, BTreeNode* node2);
 
 
         Btree(unsigned int BlockSize){

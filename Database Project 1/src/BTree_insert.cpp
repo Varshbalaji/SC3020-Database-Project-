@@ -380,8 +380,24 @@ int main(){
 
     treeNode.printTree(treeNode.fetchRoot());
 
+
+
     // vector<Key_Records> searchResult = treeNode.search(8,false,10);
     // for(int i=0; i<searchResult.size(); i++){
+    cout << "TREE START..."<<endl;
+    treeNode.removeRecord(2);
+    cout << "TREE START..."<<endl;
+
+    treeNode.printTree(treeNode.fetchRoot());
+    treeNode.removeRecord(0);
+    cout << "TREE START..."<<endl;
+    treeNode.printTree(treeNode.fetchRoot());
+    treeNode.removeRecord(1);
+    cout << "TREE START..."<<endl;
+    treeNode.printTree(treeNode.fetchRoot());
+    treeNode.removeRecord(3);
+    cout << "TREE START..."<<endl;
+    treeNode.printTree(treeNode.fetchRoot());
     //     cout<<searchResult[i].key_value<<"\n";
 
     // }
