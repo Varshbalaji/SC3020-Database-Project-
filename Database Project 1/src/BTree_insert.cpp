@@ -5,12 +5,13 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include<queue>
 #include "../include/BplusTree.h"
 
 using namespace std;
 
 
-void Btree::insert(int keyValue, RecordAddress recordAddress){
+void Btree::insert(float keyValue, RecordAddress recordAddress){
 
 
     Key_Records key = {keyValue};
@@ -33,13 +34,13 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
         while (current ->isleaf == false){
             parent = current;
             // the key to be inserted is larger than all keys in the internal node  
-            if (key.key_value > current->keys[current->numKeysPerNode-1].key_value){
+            if (key.key_value >= current->keys[current->numKeysPerNode-1].key_value){
                 current = current->child[current->numKeysPerNode]; // go to the next node
             }
             
             else{
                 for(int i=0;i<current->numKeysPerNode;i++){
-                    if(key.key_value < current->keys->key_value){
+                    if(key.key_value < current->keys[i].key_value){
                         current = current->child[i];
                         break;
                     }
@@ -101,11 +102,13 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
             current->child[deg] = NULL;
 
             //Distribute records from the virtualNode between the 2 leaf nodes
+            cout<<"split 1"<<"\n";
             for(i = 0; i < current->numKeysPerNode; i++){
                     current->keys[i] = virtualNode[i];
                     cout << current->keys[i].key_value<<"\n";
             }
 
+            cout<<"split 2"<<"\n";
             for(i = 0, j = current->numKeysPerNode; i < newLeafNode->numKeysPerNode; i++, j++){
                     newLeafNode->keys[i] = virtualNode[j];
                     cout << newLeafNode->keys[i].key_value << "\n";
@@ -122,6 +125,7 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
                 newRoot->isleaf = false;
                 newRoot->numKeysPerNode = 1;
                 root = newRoot;
+                cout <<"New root created"<<"\n";
             }
             else{ //insert new parent 
                 insertParent(newLeafNode->keys[0],parent,newLeafNode);
@@ -142,8 +146,9 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
         }
         for(int j = current->numKeysPerNode; j>i; j--){
             current->keys[j] = current->keys[j-1];
+            current->child[j+1] = current->child[j];
         }
-
+        cout<<"Adding to same parent"<<"\n";
         current->keys[i] = key; //insert the key
         current->numKeysPerNode++; //increase current number of keys in the node
         cout << "Testing Internal" << current->keys[i].key_value <<"\n";
@@ -180,12 +185,14 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
         current ->numKeysPerNode = (deg +1)/2; //number of keys in the current node 
         newParent->numKeysPerNode = deg - (deg +1)/2; // number of keys in the new internal node 
 
+        cout<<"Parent split 1"<<"\n";
         for (i=0;i<current->numKeysPerNode;i++){
             current->keys[i] = virtualKeys[i];
             current->child[i] = virtualChildren[i];
         }
         current->child[current->numKeysPerNode] = virtualChildren[i];
 
+        cout<<"Parent split 2"<<"\n";
         j = current->numKeysPerNode+1;
         for(i=0;i<newParent->numKeysPerNode;i++){
             newParent->keys[i] = virtualKeys[j];
@@ -210,6 +217,7 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
                 newRoot->isleaf = false;
                 newRoot->numKeysPerNode = 1;
                 root = newRoot;
+                cout<<"New Parent Root"<<"\n";
         }
         else{
             Key_Records ss_value = fetchSSKey(newParent);
@@ -223,9 +231,10 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
 
 //Find parent 
 BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
+    cout<<"Entered findParent"<<"\n";
     BTreeNode *parent;
     if (current->isleaf || current->child[0]->isleaf){
-        return NULL;
+        return nullptr;
     }
     for (int i=0; i < current->numKeysPerNode+1 ; i++){
         if (current->child[i] == child) {
@@ -234,10 +243,11 @@ BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
         }       
         else {
             parent = findParent(current->child[i], child);
-                if (parent != NULL)
+                if (parent != nullptr)
                     return parent;
         }
     }
+    cout<<"Exiting findParent"<<"\n";
     return parent;
 
 }
@@ -254,12 +264,48 @@ Key_Records Btree::fetchSSKey(BTreeNode *current){
 
 // Print the tree
 void Btree::printTree(BTreeNode *current)
+//{
+
+//     if (current == nullptr)
+//         return;
+
+//     queue<BTreeNode *> q;
+
+//     q.push(current);
+
+//     while (!q.empty())
+//     {
+//         int queueSize = q.size();
+//         for (int i = 0; i < queueSize; i++)
+//         {
+//           BTreeNode *node = q.front();
+//           for (int i = 0; i < node->numKeysPerNode; i++)
+//           {
+//             cout << node->keys[i].key_value<< "|";
+//             if (!node->isleaf)
+//             {
+//               q.push(node->child[i]);
+//             }
+//           }
+//           cout << "-----";
+//           if (!node->isleaf)
+//           {
+//             q.push(node->child[node->numKeysPerNode]);
+//           }
+//           q.pop();
+//           if(nodeCount-- == 0)
+//             return;
+//         }
+//         cout << endl;
+//     }
+// }
 {
   if (current != NULL) {
     for (int i = 0; i < current->numKeysPerNode; i++) {
-        int value = current->keys[i].key_value;
+        float value = current->keys[i].key_value;
         cout << value <<" ";
     }
+    cout << "\n";
     cout << "\n";
     if (current->isleaf != true) {  
       for (int i = 0; i < current->numKeysPerNode + 1; i++) {
@@ -274,7 +320,7 @@ BTreeNode *Btree::fetchRoot(){
     return root;
 }
 
-std::vector<Key_Records> Btree::search(int key, bool rangeflag, int key2){
+std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
     std::vector<Key_Records> search_result;
 
@@ -302,22 +348,6 @@ std::vector<Key_Records> Btree::search(int key, bool rangeflag, int key2){
                 }
             }
         }
-
-        // //traverse through internal nodes 
-        // while(current->isleaf == false){
-        //     for(int i=0; i<current->numKeysPerNode; i++){
-        //         if(key < current->keys[i].key_value){
-        //             current = current->child[i]; 
-        //             break;
-        //         }
-
-        //         //if we reach the end of the keys in the node
-        //         if(key == current->keys[current->numKeysPerNode - 1].key_value){
-        //             current = current->child[i+1];
-        //             break;
-        //         }
-        //     }
-        // }
 
         //leaf node 
         if(!rangeflag){ //Single key query
@@ -355,50 +385,51 @@ std::vector<Key_Records> Btree::search(int key, bool rangeflag, int key2){
     return search_result;
 };
 
-int main(){
-    int key1 = 1;
-    RecordAddress address1 = {1, 20};
-    int key2 = 2;
-    RecordAddress address2 = {2, 40};
-    int key3 = 10;
-    RecordAddress address3 = {4, 20};
-    int key4 = 4;
-    RecordAddress address4 = {3, 20};  //duplicate 
-    int key5 = 5;
-    RecordAddress address5 = {8, 20};
-    int key6 = 6;
-    RecordAddress address6 = {6, 20};
-    int key7 = 9;
-    RecordAddress address7 = {7, 20};
-    int key8 = 3;
-    RecordAddress address8 = {8, 40};
-    int key9 = 7;
-    RecordAddress address9 = {9, 20};
-    int key10 = 0;
-    RecordAddress address10 = {10, 20};
-    int key11 = 0;
-    RecordAddress address11 = {11, 40};
+// int main(){
+//     int key1 = 1;
+//     RecordAddress address1 = {1, 20};
+//     int key2 = 2;
+//     RecordAddress address2 = {2, 40};
+//     int key3 = 10;
+//     RecordAddress address3 = {4, 20};
+//     int key4 = 4;
+//     RecordAddress address4 = {3, 20};  //duplicate 
+//     int key5 = 5;
+//     RecordAddress address5 = {8, 20};
+//     int key6 = 6;
+//     RecordAddress address6 = {6, 20};
+//     int key7 = 9;
+//     RecordAddress address7 = {7, 20};
+//     int key8 = 3;
+//     RecordAddress address8 = {8, 40};
+//     int key9 = 7;
+//     RecordAddress address9 = {9, 20};
+//     int key10 = 0;
+//     RecordAddress address10 = {10, 20};
+//     int key11 = 0;
+//     RecordAddress address11 = {11, 40};
 
 
-    Btree treeNode(60) ;
-    treeNode.insert(key1, address1);
-    treeNode.insert(key2, address2);
-    treeNode.insert(key3, address3);
-    treeNode.insert(key4, address4);
-    treeNode.insert(key5, address5);
-    treeNode.insert(key6, address6);
-    treeNode.insert(key7, address7);
-    treeNode.insert(key8, address8);
-    treeNode.insert(key9, address9);
-    treeNode.insert(key10, address10);
-    treeNode.insert(key11, address11);
+//     Btree treeNode(60) ;
+//     treeNode.insert(key1, address1);
+//     treeNode.insert(key2, address2);
+//     treeNode.insert(key3, address3);
+//     treeNode.insert(key4, address4);
+//     treeNode.insert(key5, address5);
+//     treeNode.insert(key6, address6);
+//     treeNode.insert(key7, address7);
+//     treeNode.insert(key8, address8);
+//     treeNode.insert(key9, address9);
+//     treeNode.insert(key10, address10);
+//     treeNode.insert(key11, address11);
+//     cout << "TREE START..."<<endl;
 
-    treeNode.printTree(treeNode.fetchRoot());
+//     treeNode.printTree(treeNode.fetchRoot());
 
-    vector<Key_Records> searchResult = treeNode.search(8,false,10);
-    for(int i=0; i<searchResult.size(); i++){
-        cout<<searchResult[i].key_value<<"\n";
+//     // vector<Key_Records> searchResult = treeNode.search(8,false,10);
+//     // for(int i=0; i<searchResult.size(); i++){
+//     //     cout<<searchResult[i].key_value<<"\n";
 
-    }
-}
+//     // }
+// }
 

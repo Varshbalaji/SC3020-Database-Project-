@@ -3,8 +3,9 @@
 #include <sstream>
 #include <string>
 #include "src/Storage.cpp"
+#include "src/BTree_insert.cpp"
 
-void populateData(Storage diskStorage, unsigned int recordLength, string gamesDataFile);
+void populateData(Storage diskStorage, unsigned int recordLength, string gamesDataFile, Btree treeNode);
 void testInsertDeleteGetMethods (Storage diskStorage, unsigned int recordLength);
 void printRecords(Storage diskStorage, unsigned int recordLength);
 
@@ -13,16 +14,19 @@ using namespace std;
 int main() {
     unsigned int memorySizeMB = 100;                  // MB
     unsigned int recordLength = sizeof(Record);     // Bytes
-    unsigned int blockSize = 60;                    // Bytes
+    unsigned int blockSize = 400;                    // Bytes
     string gamesDataFile = "games.txt";
 
     // Allocate Memory
     Storage diskStorage{memorySizeMB*1024*1024, blockSize};
     // Allocate B+ Tree <<< To be coded
-    populateData(diskStorage, recordLength,gamesDataFile);
+    Btree treeNode(blockSize) ;
+    cout <<"Degree of tree: "<<treeNode.deg<<endl;
+
+    populateData(diskStorage, recordLength,gamesDataFile,treeNode);
 }
 
-void populateData(Storage diskStorage, unsigned int recordLength, string gamesDataFile) {
+void populateData(Storage diskStorage, unsigned int recordLength, string gamesDataFile, Btree treeNode) {
     Record *dataRecord; 
     ifstream gamesdataFileStream;
     string  GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home, AST_home, REB_home, HOME_TEAM_WINS;
@@ -115,13 +119,26 @@ void populateData(Storage diskStorage, unsigned int recordLength, string gamesDa
        else {
         record.HOME_TEAM_WINS = 0;
        }
+
                                  
        recordAddress = diskStorage.insertRecord(recordLength,&record);
        //B+ Tree insert with key + record Address  <<< To be coded
+       treeNode.insert(record.FG_PCT_home, recordAddress);
+
        recCount ++;
     //   cout << "Record # " << recCount << "  " << GAME_DATE_EST << " Inserted at Block " << recordAddress.blockNumber << " Offset " << recordAddress.offset <<"\n";
     }
+    cout << treeNode.nodeCount << "\n";
     cout << " Number of Records Inserted = " << recCount <<"\n";
+
+    //search 
+    vector<Key_Records> searchResult = treeNode.search(0.6,true,1);
+    for(int i=0; i<searchResult.size(); i++){
+        cout<<searchResult[i].key_value<<"\n";
+    }
+
+    cout << "Tree Printing" << endl;
+    treeNode.printTree(treeNode.fetchRoot());
     gamesdataFileStream.close();
 
     testInsertDeleteGetMethods(diskStorage,recordLength);
