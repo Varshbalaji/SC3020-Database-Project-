@@ -11,17 +11,18 @@
 
 using namespace std;
 
+int recordCount=0;
 
-void Btree::insert(float keyValue, RecordAddress recordAddress){
+void Btree::insert(int keyValue, RecordAddress recordAddress){
 
 
     Key_Records key = {keyValue};
-    key.storage_array.push_back(recordAddress);
     // if there is a root node
     if(root == nullptr){
         cout << "B+ Tree Creation In Progress.....\n" << "\n";
         root = new BTreeNode(deg);
         root->keys[0] = key ; //inserting 
+        key.storage_array.push_back(recordAddress);
         root->numKeysPerNode = 1;
         root->isleaf = true;
         nodeCount++; 
@@ -58,7 +59,6 @@ void Btree::insert(float keyValue, RecordAddress recordAddress){
             }
         }
         key.storage_array.push_back(recordAddress);  //Update the storage array for the correct leaf node 
-
         //If there is a space in the leaf node, insert key accordingly
         if(current->numKeysPerNode < deg){
             int i = 0;
@@ -303,32 +303,47 @@ void Btree::printTree(BTreeNode *current)
 //     }
 // }
 {
-    Record *dataRecord; 
-    int numberOfDataBlocksAccessed = 0;
+//     Record *dataRecord; 
+//     int numberOfDataBlocksAccessed = 0;
+
+//   if (current != NULL) {
+//     for (int i = 0; i < current->numKeysPerNode; i++) {
+//         float value = current->keys[i].key_value;
+//         if (current->isleaf) {
+//             cout << value <<" [ ";
+//             for(int j=0; j < current->keys[i].storage_array.size(); j++){
+//                 tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord( current->keys[i].storage_array[j],44);
+//                 if (dataRecord != nullptr) {
+//                     cout << "(" << dataRecord->gameDate <<"," <<dataRecord->teamID<<") ; ";
+//                 }
+//                 //cout << "(" << current->keys[i].storage_array[j].blockNumber <<"," <<current->keys[i].storage_array[j].offset<<") ; ";
+//             }
+//         cout << " ] \n";            
+//         }
+
+//     }
+    
+//     if (current->isleaf != true) {  
+//       for (int i = 0; i < current->numKeysPerNode + 1; i++) {
+//         printTree(current->child[i]);
+//       }
+//     }
+//   }
 
   if (current != NULL) {
     for (int i = 0; i < current->numKeysPerNode; i++) {
         float value = current->keys[i].key_value;
-        if (current->isleaf) {
-            cout << value <<" [ ";
-            for(int j=0; j < current->keys[i].storage_array.size(); j++){
-                tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord( current->keys[i].storage_array[j],44);
-                if (dataRecord != nullptr) {
-                    cout << "(" << dataRecord->gameDate <<"," <<dataRecord->teamID<<") ; ";
-                }
-                //cout << "(" << current->keys[i].storage_array[j].blockNumber <<"," <<current->keys[i].storage_array[j].offset<<") ; ";
-            }
-        cout << " ] \n";            
-        }
-
+        cout << value <<" ";
     }
-    
+    cout << "\n";
+    cout << "\n";
     if (current->isleaf != true) {  
       for (int i = 0; i < current->numKeysPerNode + 1; i++) {
         printTree(current->child[i]);
       }
     }
   }
+
 }
 //Fetch root 
 BTreeNode *Btree::fetchRoot(){
@@ -487,8 +502,11 @@ float Btree::avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_r
         for(int j=0;j<key.storage_array.size();j++){
             RecordAddress recordAddress= {key.storage_array[j].blockNumber, key.storage_array[j].offset};
             tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord(recordAddress, sizeof(Record));
-            sum += dataRecord->FG3_PCT_home;
-            recordCount++;
+            if (dataRecord != nullptr){
+
+                sum += dataRecord->FG3_PCT_home;
+                recordCount++;
+            }
         }
     }
     cout<<recordCount<<"\n";
