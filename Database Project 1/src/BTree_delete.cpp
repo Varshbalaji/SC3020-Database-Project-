@@ -9,9 +9,6 @@ using namespace std;
 void Btree::removeRecord(int key){
 
     removeRecord(key, root);
-    cout<< root->child[0]->keys[0].key_value<< endl;
-    cout<< root->child[1]->keys[1].key_value<< endl;
-    cout<<"HOLY"<<endl;
 };
 
 void Btree::treat_underflow(BTreeNode* node)
@@ -378,7 +375,8 @@ void Btree::removeRecord(int key, BTreeNode* node){
         }
         i = node->numKeysPerNode;
         removeRecord(key, node->child[i]);
-        if(node->child[i]->numKeysPerNode < (this->deg+1)/2)
+         if((node->child[i]->numKeysPerNode < (this->deg+1)/2    && node->child[i]->isleaf)
+        || (node->child[i]->numKeysPerNode < (this->deg)/2      && !(node->child[i]->isleaf)))
         {
             if(!((i>0 && tryBorrowing(node->child[i], node->child[i+1])) || (i<node->numKeysPerNode && tryBorrowing(node->child[i+1], node->child[i]))))
             {
