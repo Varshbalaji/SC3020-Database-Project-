@@ -38,41 +38,28 @@ struct BTreeNode{
 class Btree
 {
 
-    // public:
-    private:
+    public:
         int deg; //degree
         BTreeNode* root;
         int nodeCount;
 
-        // Helper functions 
-        void treat_underflow(BTreeNode* node);
-
-        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
-        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
-
+        // Deletion Helper functions 
+        void treat_underflow(BTreeNode *node);
         void removeRecord(int key, BTreeNode* node);
-
-        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
-        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
-
 
         bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
 
         int mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
 
+        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
 
+        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
 
         void remove_key_in_internal_node(BTreeNode* internalNode, int key);
 
         void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
-        
-        void findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index);
-
-        std::pair<BTreeNode*, BTreeNode*> findAdjacentSiblings(BTreeNode* root, BTreeNode* node);
 
 
-        
-    public:
         Btree(unsigned int BlockSize){
             root = nullptr;
             nodeCount =0;
@@ -81,14 +68,20 @@ class Btree
             // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
+
+        void insert(int keyValue, RecordAddress recordAddres);
+
+        //Insert Helper Functions
+        void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
+        BTreeNode *findParent( BTreeNode *current, BTreeNode *child);
+        Key_Records fetchSSKey(BTreeNode *current);
+        void printTree(BTreeNode *current);
+        BTreeNode *fetchRoot();
         void updateParentKey2(BTreeNode* parent, int oldKey, int newKey);
-
-
-        void insert(int keyValue, RecordAddress recordAddress);
-
-        std::vector<Key_Records> search(BTreeNode* node, int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
-
+        std::vector<Key_Records> search(int key, bool rangeflag, int key2); // Search for a key in the B+ tree and return associated values
+        void findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index);
         void removeRecord(int key);
+        std::pair<BTreeNode*, BTreeNode*>  findAdjacentSiblings(BTreeNode* root, BTreeNode* node);
 
         int getDegree(){
             return deg;
@@ -101,12 +94,8 @@ class Btree
         BTreeNode* getRoot() const {
             return root;
             };
-
-
-        void printTree(BTreeNode *current);
-        BTreeNode *fetchRoot();
-        //void printTree(BTreeNode* node, int level = 0);
-        //void print(BTreeNode* node);
+        // void printTree(BTreeNode* node, int level = 0);
+        void print(BTreeNode* node);
 
 };
 
