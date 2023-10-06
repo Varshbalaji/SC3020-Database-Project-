@@ -6,6 +6,7 @@
 #include <cstring>
 #include <algorithm>
 #include<queue>
+#include<tuple>
 #include "../include/BplusTree.h"
 
 using namespace std;
@@ -15,12 +16,14 @@ void Btree::insert(float keyValue, RecordAddress recordAddress){
 
 
     Key_Records key = {keyValue};
+    key.storage_array.push_back(recordAddress);
     // if there is a root node
     if(root == nullptr){
         cout << "B+ Tree Creation In Progress.....\n" << "\n";
         root = new BTreeNode(deg);
         root->keys[0] = key ; //inserting 
         root->numKeysPerNode = 1;
+        root->isleaf = true;
         nodeCount++; 
         return;
     }
@@ -300,13 +303,26 @@ void Btree::printTree(BTreeNode *current)
 //     }
 // }
 {
+    Record *dataRecord; 
+    int numberOfDataBlocksAccessed = 0;
+
   if (current != NULL) {
     for (int i = 0; i < current->numKeysPerNode; i++) {
         float value = current->keys[i].key_value;
-        cout << value <<" ";
+        if (current->isleaf) {
+            cout << value <<" [ ";
+            for(int j=0; j < current->keys[i].storage_array.size(); j++){
+                tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord( current->keys[i].storage_array[j],44);
+                if (dataRecord != nullptr) {
+                    cout << "(" << dataRecord->gameDate <<"," <<dataRecord->teamID<<") ; ";
+                }
+                //cout << "(" << current->keys[i].storage_array[j].blockNumber <<"," <<current->keys[i].storage_array[j].offset<<") ; ";
+            }
+        cout << " ] \n";            
+        }
+
     }
-    cout << "\n";
-    cout << "\n";
+    
     if (current->isleaf != true) {  
       for (int i = 0; i < current->numKeysPerNode + 1; i++) {
         printTree(current->child[i]);
@@ -314,7 +330,6 @@ void Btree::printTree(BTreeNode *current)
     }
   }
 }
-
 //Fetch root 
 BTreeNode *Btree::fetchRoot(){
     return root;
@@ -323,6 +338,7 @@ BTreeNode *Btree::fetchRoot(){
 std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
     std::vector<Key_Records> search_result;
+    nodesAccessed = 0;
 
     //Tree is empty
     if(root == nullptr) {
@@ -334,6 +350,7 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
         BTreeNode* current = root;
 
         while (current ->isleaf == false){
+            nodesAccessed++;
             // the key to be inserted is larger than all keys in the internal node  
             if (key >= current->keys[current->numKeysPerNode-1].key_value){
                 current = current->child[current->numKeysPerNode]; // go to the next node
@@ -351,21 +368,24 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
         //leaf node 
         if(!rangeflag){ //Single key query
+            nodesAccessed++;
             for(int i = 0; i<current->numKeysPerNode; i++){
                 if (current->keys[i].key_value == key) {
                     cout<<"Key Found!\n";
                     search_result.push_back(current->keys[i]);
+                    cout <<nodesAccessed<<"\n";
                     return search_result;
                 }
             }
         }
 
         else{ //Range query
-            
+            nodesAccessed++;
             for (int i = 0; i < current->numKeysPerNode+1; i++) {
                 
                 if(i==current->numKeysPerNode){
                         current = current->child[i];
+                        nodesAccessed++;
                         i = 0;
                 }
 
@@ -374,16 +394,29 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
                 
                 }
 
-                if(current->keys[i].key_value>=key2)
+                if(current->child[current->numKeysPerNode]==nullptr && i==current->numKeysPerNode-1)
+                    break;
+
+                if(current->keys[i].key_value>=key2 )
                     break;
 
             }
             return search_result;
         }
-
     }
-    return search_result;
-};
+}
+
+int Btree::getLevels(BTreeNode* current){
+    if(current->isleaf == false)
+        return getLevels(current->child[0])+1;
+    
+    else if(current->isleaf == true)
+        return 1;
+    
+    else
+        return 0;
+
+}
 
 // int main(){
 //     int key1 = 1;
@@ -432,4 +465,34 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
 //     // }
 // }
+
+BTreeNode* Btree::fetchSmallestLeaf(BTreeNode *current){
+    
+    // Find the smallest on the right subtree
+    while (!current->isleaf){
+        current = current->child[0];
+    }
+    return current;
+
+}
+
+float Btree::avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result){
+    int recordCount = 0;
+    float sum = 0;
+    float avg = 0;
+    Record *dataRecord;
+    int numberOfDataBlocksAccessed;
+    for(int i=0;i<search_result.size();i++){
+        Key_Records key = search_result[i];
+        for(int j=0;j<key.storage_array.size();j++){
+            RecordAddress recordAddress= {key.storage_array[j].blockNumber, key.storage_array[j].offset};
+            tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord(recordAddress, sizeof(Record));
+            sum += dataRecord->FG3_PCT_home;
+            recordCount++;
+        }
+    }
+    cout<<recordCount<<"\n";
+    avg = sum/recordCount;
+    return avg;
+}
 

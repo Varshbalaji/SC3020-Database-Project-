@@ -15,13 +15,13 @@ struct RecordAddress {
 struct Record{
     char gameDate[11];
     long teamID;
-    short homePts;
+    int homePts;
     float FG_PCT_home;
     float FT_PCT_home;
     float FG3_PCT_home;
-    short AST_home;
-    short REB_home;
-    bool HOME_TEAM_WINS;
+    int AST_home;
+    int REB_home;
+    int HOME_TEAM_WINS;
 
 };
 
@@ -33,7 +33,8 @@ class Storage
         virtual ~Storage();
         RecordAddress insertRecord(unsigned int recordSize, void *record);
         bool deleteRecord(RecordAddress address, unsigned int recordSize);
-        Record* getRecord(RecordAddress address, unsigned int recordSize); //get the current record we require 
+        tuple<Record*, int> getRecord(RecordAddress recordAddress, unsigned int recordSize); //get record identified by RecordAddres & Number of data blocks accessed
+
         RecordAddress getNextRecordAddress(RecordAddress address, unsigned int recordSize); //get next record following the one we need
 
         unsigned int getBlockSize(){
@@ -47,10 +48,10 @@ class Storage
         unsigned int getTotalNumberOfRecords(){
             return TotalNumberOfRecords;
         }
-        unsigned int getMaxNumberOfBlockss(){
+        unsigned int getMaxNumberOfBlocks(){
             return MaxNumberOfBlocks;
         }
-        unsigned int getUsedBlockss(){
+        unsigned int getUsedBlocks(){
             if (CurrentFreeBlockOffset == 0) {
                 return CurrentFreeBlockNumber - 1;
             }

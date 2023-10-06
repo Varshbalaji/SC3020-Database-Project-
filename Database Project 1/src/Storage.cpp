@@ -54,7 +54,8 @@ RecordAddress Storage::insertRecord(unsigned int recordSize, void *record){
         CurrentFreeBlockOffset = 0;                                   // Start at 0 offset in next block
 
         blockRecordAddress = StoragePtr + ( (CurrentFreeBlockNumber - 1) * BlockSize) + CurrentFreeBlockOffset;
-        memcpy((char *)blockRecordAddress , (record + splitRecordSize), spillOverRecordSize); // advance record pointer and fll rest of record in next block
+        char *recordChar = (char *) record;
+        memcpy((char *)blockRecordAddress , (recordChar + splitRecordSize), spillOverRecordSize); // advance record pointer and fll rest of record in next block
         CurrentFreeBlockOffset += spillOverRecordSize;
     }
     else {
@@ -109,25 +110,30 @@ bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
     }
 }
 
-Record* Storage::getRecord(RecordAddress recordAddress, unsigned int recordSize){
+tuple<Record*, int> Storage::getRecord(RecordAddress recordAddress, unsigned int recordSize){
     char *dataRecord;
     dataRecord  = StoragePtr + ((recordAddress.blockNumber -1) * BlockSize ) + recordAddress.offset;
 
     if (recordAddress.blockNumber > MaxNumberOfBlocks){
         cout << "Error: Record Address to be fetched is beyond allocated memory ! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
-        return nullptr;
+        return {nullptr,0};
     }
     if (recordAddress.blockNumber > CurrentFreeBlockNumber ||
         (recordAddress.blockNumber == CurrentFreeBlockNumber && recordAddress.offset >= CurrentFreeBlockOffset)){ 
         cout << "Error: Trying to get non-existent record at Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
-        return nullptr;
+        return {nullptr,0};
     }
 
     if (dataRecord[0] == '\000'){ 
-        return nullptr;
+        return {nullptr,0};
     }
-
-    return ((Record *) dataRecord);
+    if (recordAddress.offset + recordSize > BlockSize){
+        return {(Record *) dataRecord,2};       // Record spans 2 blocks and so return number of datablocks accessed as 2
+    }
+    else {
+        return {(Record *) dataRecord,1};       // Record is contained in 1 block so return number of datablocks accessed as 1
+    }
+    
 }
 
 RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigned int recordSize){

@@ -1,6 +1,5 @@
 #ifndef BplusTree_H
 #define BplusTree_H
-
 #include "../include/Storage.h"
 #include <math.h>
 #include <vector>
@@ -42,6 +41,8 @@ class Btree
         int deg; //degree
         BTreeNode* root;
         int nodeCount;
+        int nodesAccessed;
+        Storage *diskStorage;
 
         // Deletion Helper functions 
         void treat_underflow(BTreeNode *node);
@@ -60,11 +61,12 @@ class Btree
         void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
 
 
-        Btree(unsigned int BlockSize){
+        Btree(Storage *diskStorage){
             root = nullptr;
             nodeCount =0;
             deg = 0;
-            unsigned int spaceForKeys = BlockSize - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
+            this->diskStorage = diskStorage;
+            unsigned int spaceForKeys = diskStorage->getBlockSize() - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
             deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
@@ -78,14 +80,21 @@ class Btree
         void printTree(BTreeNode *current);
         BTreeNode *fetchRoot();
         void updateParentKey2(BTreeNode* parent, int oldKey, int newKey);
-        std::vector<Key_Records> search(float key, bool rangeflag, float key2); // Search for a key in the B+ tree and return associated values
         void findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index);
         void removeRecord(int key);
         std::pair<BTreeNode*, BTreeNode*>  findAdjacentSiblings(BTreeNode* root, BTreeNode* node);
 
+        BTreeNode  *fetchSmallestLeaf(BTreeNode *current);
+
+        //search
+        std::vector<Key_Records> search(float key, bool rangeflag, float key2); // Search for a key in the B+ tree and return associated values
+        float avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result);
+
         int getDegree(){
             return deg;
             };
+
+        int getLevels(BTreeNode* current);
 
         void setRoot(BTreeNode* newRoot) {
             root = newRoot;
