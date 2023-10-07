@@ -7,12 +7,19 @@
 
 #include "src/Storage.cpp"
 #include "src/BTree_insert.cpp"
+// #include "C:\Users\varsh\OneDrive\C_Projects\Linked list\SC3020-Database-Project-\Database Project 1\src\BTree_delete.cpp"
 
 void experiment_1(Storage *diskStorage,  unsigned int recordLength, string gamesDataFile, unsigned int blockSize);
-//void experiment_2(Storage *diskStorage, Btree *tree, unsigned int recordLength);
-void experiment_3(Storage *diskStorage, unsigned int recordLength);
-void experiment_4(Storage *diskStorage, unsigned int recordLength);
-void experiment_5(Storage *diskStorage, unsigned int recordLength);
+void experiment_2(Storage *diskStorage, Btree *tree, unsigned int recordLength);
+void experiment_3(Storage *diskStorage, Btree *tree,  unsigned int recordLength);
+void experiment_4(Storage *diskStorage, Btree *tree,  unsigned int recordLength);
+// void experiment_5(Storage *diskStorage, Btree *tree,  unsigned int recordLength);
+
+void experiment_5_Btree(Storage *diskStorage,Btree *tree, unsigned int recordLength);
+void experiment_5_BruteForce(Storage *diskStorage,Btree *tree, unsigned int recordLength);
+
+
+
 
 void populateData(Storage *diskStorage, unsigned int recordLength, string gamesDataFile);
 void testInsertDeleteGetMethods (Storage *diskStorage, unsigned int recordLength);
@@ -28,15 +35,23 @@ int main() {
     unsigned int memorySizeMB = 100;                  // MB
     unsigned int recordLength = sizeof(Record);     // Bytes
     unsigned int blockSize = 400;                    // Bytes
-    string gamesDataFile = "games_Small.txt";
+    string gamesDataFile = "games.txt";
 
     // Debug purposes
     // printKeys(&diskStorage,recordLength);
     // printKeysforBtreeValidation();
-    // Allocate Memory
-    
+
+
+    // Allocate Disk Storage Memory 
     Storage diskStorage{memorySizeMB*1024*1024, blockSize};
-    Btree tree(&diskStorage);
+
+    // Calculate Degree of B+ Tree based on BlockSize
+    unsigned int spaceForKeys = diskStorage.getBlockSize() - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
+    int degree = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
+
+    // Create B+ Tree
+    Btree tree(&diskStorage,degree);
+
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
     cout << "*                                        Storage Stats                                               *\n";
@@ -51,109 +66,62 @@ int main() {
     experiment_1(&diskStorage, recordLength, gamesDataFile, blockSize);
     
     // Experiment 2: Build a B+ tree on the attribute "FG_PCT_home"
-    //experiment_2(&diskStorage, &tree, recordLength);
-    
-    //Sequential scan Storage to get records and build B+ Tree
+    experiment_2(&diskStorage, &tree, recordLength);
 
-    RecordAddress recordAddress;
-    Record *dataRecord; 
-
-    int numberOfRecords = 0, numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
-
-    recordAddress.blockNumber = 1; // Start with first record at Block 1 : Offset 0
-    recordAddress.offset = 0;
-
-    tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage.getRecord(recordAddress,recordLength);
-    tree.insert(dataRecord->teamID, recordAddress);
-
-    while (dataRecord != nullptr) {
-
-        tree.insert(dataRecord->teamID, recordAddress);
-
-        numberOfRecords++;
-        totalNumberOfDataBlocksAccessed +=  numberOfDataBlocksAccessed;
-        
-        recordAddress = diskStorage.getNextRecordAddress(recordAddress, recordLength);
-        if (recordAddress.blockNumber != -1) {    // Not End of File
-            tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage.getRecord(recordAddress,recordLength);        
-        }
-        else{
-            dataRecord = nullptr;
-        }
-    }
-    cout << "number of records"<< numberOfRecords << "\n\n";
-    cout << "TREE START..."<<endl;
-    // tree.removeRecord(1610612745)<<endl;
-    // tree.removeRecord(1610612745)<<endl;
-    // tree.removeRecord(1610612738)<<endl;
-    // tree.removeRecord(1610612751)<<endl;
-    // tree.removeRecord(1610612752)<<endl;
-    // tree.removeRecord(1610612745)<<endl;
-    // tree.removeRecord(1610612750)<<endl;
-    // tree.removeRecord(1610612760)<<endl;
-    // tree.removeRecord(1610612746)<<endl;
-    // tree.removeRecord(1610612765)<<endl;
-    // tree.removeRecord(1610612748)<<endl;
-    // tree.removeRecord(1610612756)<<endl;
-    // tree.removeRecord(1610612743)<<endl;
-    // tree.removeRecord(1610612754)<<endl;
-    // tree.removeRecord(1610612761)<<endl;
-    // tree.removeRecord(1610612747)<<endl;
-    // tree.removeRecord(1610612759)<<endl;
-    // tree.removeRecord(1610612749)<<endl;
-    // tree.removeRecord(1610612766)<<endl;
-    // tree.removeRecord(1610612741)<<endl;
-    // tree.removeRecord(1610612742)<<endl;
-    // tree.removeRecord(1610612763)<<endl;
-    // tree.removeRecord(1610612753)<<endl;
-    // tree.removeRecord(1610612764)<<endl;
-    tree.removeRecord(1610612757)<<endl;
-    // tree.removeRecord(1610612744)<<endl;
-
-    cout <<"numberOfRecords: "<< numberOfRecords <<"\n";
-    cout <<"recordCount: "<< tree.recordCount <<"\n";
-   
-    tree.printTree(tree.fetchRoot());
-    cout << "RANGE" << "\n";
-    vector<Key_Records> searchResult = tree.search(1610612757,false,0);
-    cout << "lalala"<<searchResult.size()<<"\n";
-    for(int i=0; i<searchResult.size(); i++){
-        cout<<searchResult[i].key_value<<"\n";
-    }
-    float average = tree.avgFG3_PCT_home(&diskStorage,searchResult);
-    cout<<"AVERAGE: "<<average<<"\n";
-
-    cout << "VERFYYYY"<<"\n";
-    BTreeNode* result = tree.fetchSmallestLeaf(tree.root);
-    for(int i=0;i<tree.deg;i++){
-            Key_Records value = result->keys[i];
-    }
-
-
-
-
-
-    cout << "*----------------------------------------------------------------------------------------------------*\n";
-    cout << "*                    Experiment 2: Build a B+ tree on the attribute FG_PCT_home                      *\n";
-    cout << "*----------------------------------------------------------------------------------------------------*\n";
-    cout << "\n";
-    cout << " Parameter n of the B+ Tree                       = " << tree.deg << "\n";
-    cout << " Number of node of the B+ Tree                    = " << tree.nodeCount << "\n";
-    cout << " Number of levels of the B+ Tree                  = " << tree.getLevels(tree.root) << "\n";
-    //might change if root node contains more than one key, will have to run a for loop 
-    cout << " Content of root node                             = " << tree.root->keys[0].key_value << "\n\n";
-    cout << "*----------------------------------------------------------------------------------------------------*\n\n";
-    
     // Experiment 3: Retrieve the games with "FG_PCT_home" = 0.5 (B+ tree) and calculate average of "FG3_PCT_Home"
-    experiment_3(&diskStorage, recordLength);
+    experiment_3(&diskStorage, &tree,  recordLength);
 
     // Experiment 4: Retrieve the games with "FG_PCT_home" between 0.6 and 1 (B+ tree) and calculate average of "FG3_PCT_Home"
-    experiment_4(&diskStorage, recordLength);
+    experiment_4(&diskStorage, &tree,  recordLength);
 
     // Experiment 5: Retrieve the games with "FG_PCT_home" <= 0.35 (B+ tree) and delete qualifying records"
-    experiment_5(&diskStorage, recordLength);
+    // The method is split into 2 parts and executed first with B+ Tree based delete
+    // As records are deleted, the records are rebuilt from file and then second method to invoke the
+    // same process with Brute Force method of deletion is performed.
+    experiment_5_Btree(&diskStorage, &tree, recordLength);
 
-    //testInsertDeleteGetMethods(&diskStorage,recordLength);
+
+    // Rerun Experiment_1 to build a new Storage area with reords read from games.txt
+    // Allocate new Disk Storage as Memory
+    Storage diskStorageNew{memorySizeMB*1024*1024, blockSize};
+
+    cout<< "RE-RUNNING EXPERIMENT 1 TO RE-POPULATE DATA IN THE STORAGE FOR EXPERIMENT 5";
+
+    experiment_1(&diskStorageNew, recordLength, gamesDataFile, blockSize);
+
+    //Now run Experiment 5 to delete records using Brute Force
+    experiment_5_BruteForce(&diskStorageNew, &tree, recordLength);
+    
+
+    // cout << "number of records"<< numberOfRecords << "\n\n";
+    // cout << "TREE AFTER INSERT...";
+    // tree.printTree(tree.fetchRoot());
+
+    // cout <<"numberOfRecords: "<< numberOfRecords <<"\n";
+    // cout <<"recordCount: "<< tree.recordCount <<"\n";
+    // vector<Key_Records> DeleteKeys = tree.search(0,true,0.35);
+    // float value;
+    // for (int i=0; i< DeleteKeys.size(); i++){
+    //     value = DeleteKeys[i].key_value;
+    //     tree.removeRecord(value);
+    // }
+    // cout << "TREE AFTER DELETE...";
+    // tree.printTree(tree.fetchRoot());
+
+    // // cout << "RANGE" << "\n";
+    // vector<Key_Records> searchResult = tree.search(0.313,false,0);
+    // cout << "SEARCH RESULT"<<searchResult.size()<<"\n";
+    // for(int i=0; i<searchResult.size(); i++){
+    //     cout<<searchResult[i].key_value<<"\n";
+    // }
+    // float average = tree.avgFG3_PCT_home(&diskStorage,searchResult);
+    // cout<<"AVERAGE: "<<average<<"\n";
+
+    // cout << "VERFYYYY"<<"\n";
+    // BTreeNode* result = tree.fetchSmallestLeaf(tree.root);
+    // for(int i=0;i<tree.deg;i++){
+    //         Key_Records value = result->keys[i];
+    // }
 }
 
 void experiment_1(Storage *diskStorage,  unsigned int recordLength, string gamesDataFile, unsigned int blockSize){
@@ -175,6 +143,51 @@ void experiment_1(Storage *diskStorage,  unsigned int recordLength, string games
     cout << " Number of Blocks Storing Data                    = " << diskStorage->getUsedBlocks() << "\n\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n\n";
 }
+
+void experiment_2(Storage *diskStorage, Btree *tree, unsigned int recordLength){
+    //Sequential scan Storage to get records and build B+ Tree
+
+    RecordAddress recordAddress;
+    Record *dataRecord; 
+
+    int numberOfRecords = 0, numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
+
+    recordAddress.blockNumber = 1; // Start with first record at Block 1 : Offset 0
+    recordAddress.offset = 0;
+    vector<float>DeleteTestKeys = {};
+    tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord(recordAddress,recordLength);
+    tree->insert(dataRecord->FG_PCT_home, recordAddress);
+
+    while (dataRecord != nullptr) {
+     
+        tree->insert(dataRecord->FG_PCT_home, recordAddress);
+
+        numberOfRecords++;
+        totalNumberOfDataBlocksAccessed +=  numberOfDataBlocksAccessed;
+        
+        recordAddress = diskStorage->getNextRecordAddress(recordAddress, recordLength);
+        if (recordAddress.blockNumber != -1) {    // Not End of File
+            tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord(recordAddress,recordLength);        
+        }
+        else{
+            dataRecord = nullptr;
+        }
+    }
+    cout << "*----------------------------------------------------------------------------------------------------*\n";
+    cout << "*                    Experiment 2: Build a B+ tree on the attribute FG_PCT_home                      *\n";
+    cout << "*----------------------------------------------------------------------------------------------------*\n";
+    cout << "\n";
+    cout << " Parameter n of the B+ Tree                       = " << tree->getDegree() << "\n";
+    cout << " Number of node of the B+ Tree                    = " << tree->getNodeCount() << "\n";
+    cout << " Number of levels of the B+ Tree                  = " << tree->getLevels(tree->fetchRoot()) << "\n";
+    //might change if root node contains more than one key, will have to run a for loop 
+    cout << " Content of root node                             = " << tree->fetchRoot()->keys[0].key_value << "\n\n";
+    cout << "*----------------------------------------------------------------------------------------------------*\n\n";
+}
+
+
+
+
 
 // void experiment_2(Storage *diskStorage, Btree *tree, unsigned int recordLength){
 
@@ -221,38 +234,49 @@ void experiment_1(Storage *diskStorage,  unsigned int recordLength, string games
 //     cout << "*----------------------------------------------------------------------------------------------------*\n\n";
 // }
 
-void experiment_3(Storage *diskStorage, unsigned int recordLength){
+void experiment_3(Storage *diskStorage, Btree *tree, unsigned int recordLength){
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
-    cout << "   *Experiment 3: Retrieve the games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_home   *\n";
-    cout << "                                        B+ Tree Access Method                                        *\n";
+    cout << "*   Experiment 3: Retrieve the games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_home   *\n";
+    cout << "*                                       B+ Tree Access Method                                        *\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n";
     cout << "\n";
 
     float FG_PCT_HOME_Predicate = 0.5;  // Key Predicate value set to 0.5
 
+    float average_FG3_PCT_home;
+    int numberOfRecords;
+
+    //Reset Btree Index Node Access & Data Block Access  Counters
+    tree->resetIndexNodeAndDataBlockAccessCounter();
+    numberOfRecords= 0;
+
     //Capture Start Time for Elapsed time calcuation
     auto startClock = chrono::high_resolution_clock::now();
 
-    // B+ Tree based Search to rereive games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_Hhome <<<<< To be coded
-
-    //Capture Start Time for Elapsed time calcuation
+    // Search Based on FG_PCT_HOME = 0.5 using B+Tree
+    vector<Key_Records> searchResult = tree->search(FG_PCT_HOME_Predicate,false,0);
+    
+    // Find Average from qualified rows
+    tie(average_FG3_PCT_home, numberOfRecords) = tree->avgFG3_PCT_home(diskStorage,searchResult);
+    
+    //Capture Stop Time for Elapsed time calcuation
     auto endClock = chrono::high_resolution_clock::now();
     chrono::duration< double > elapsed = endClock - startClock;
     chrono::nanoseconds elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
     
-    cout << " Number of index nodes accessed                   = " << "???" << "\n";
-    cout << " Number of data blocks accessed                   = " << "???" << "\n";
-    cout << " Number of records qualified                      = " << "???" << "\n";
-    cout << " Average of FG3_PCT_home of qualified records     = " << "???" << "\n";
+    cout << " Number of Index nodes accessed                   = " << tree->getIndexNodeAccessCounter()  << "\n";
+    cout << " Number of Data blocks accessed                   = " << tree->getDataBocksAccessedCounter()  << "\n";
+    cout << " Number of Records qualified                      = " << numberOfRecords  << "\n";
+    cout << " Average of FG3_PCT_home of qualified records     = " <<  setprecision (4) << fixed  << average_FG3_PCT_home  << "\n";
     cout << " Running Time (Elapsed in nanosecs)               = " << elapsedNs.count() << "\n\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n\n";    
     
     //Now do the experiment by  bruteforce linear scan method
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
-    cout << "   *Experiment 3: Retrieve the games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_home   *\n";
-    cout << "                                     Brute Force Linear Scan Method                                  *\n";
+    cout << "*   Experiment 3: Retrieve the games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_home   *\n";
+    cout << "*                                    Brute Force Linear Scan Method                                  *\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n";
 
     //Capture Start Time for Elapsed time calcuation
@@ -261,8 +285,9 @@ void experiment_3(Storage *diskStorage, unsigned int recordLength){
     RecordAddress recordAddress;
     Record *dataRecord; 
 
-    int numberOfRecords = 0, numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
-    float cumulative_FG3_PCT_home=0, average_FG3_PCT_home;
+    int numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
+    float cumulative_FG3_PCT_home=0;
+    numberOfRecords= 0;
 
     recordAddress.blockNumber = 1; // Start with first record at Block 1 : Offset 0
     recordAddress.offset = 0;
@@ -286,50 +311,60 @@ void experiment_3(Storage *diskStorage, unsigned int recordLength){
     if (numberOfRecords > 0) {  // Calculate average
         average_FG3_PCT_home = cumulative_FG3_PCT_home / numberOfRecords;
     }
-    //Capture Start Time for Elapsed time calcuation
+    //Capture Stop Time for Elapsed time calcuation
     endClock = chrono::high_resolution_clock::now();
     elapsed = endClock - startClock;
     elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
 
-    cout << " Number of data blocks accessed                   = " << totalNumberOfDataBlocksAccessed << "\n";
-    cout << " Number of records qualified                      = " << numberOfRecords << "\n";
-    cout << " Average of FG3_PCT_home of qualified records     = " << average_FG3_PCT_home << "\n";
+    cout << " Number of Data blocks accessed                   = " << totalNumberOfDataBlocksAccessed << "\n";
+    cout << " Number of Records qualified                      = " << numberOfRecords << "\n";
+    cout << " Average of FG3_PCT_home of qualified records     = " << setprecision (4) << fixed  <<average_FG3_PCT_home << "\n";
     cout << " Running Time (Elapsed in nanosecs)               = " << elapsedNs.count() << "\n\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n\n";
 }
 
-void experiment_4(Storage *diskStorage, unsigned int recordLength){
+
+void experiment_4(Storage *diskStorage, Btree *tree, unsigned int recordLength){
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
     cout << "* Experiment 4: Retrieve the games with FG_PCT_home between 0.6 and 1 (B+ tree) and calculate average*\n";
-    cout << "                               of FG3_PCT_Home using B+ Tree Access Method                           *\n";
+    cout << "*                              of FG3_PCT_Home using B+ Tree Access Method                           *\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n";
     cout << "\n";
 
     float FG_PCT_HOME_Predicate_From = 0.6, FG_PCT_HOME_Predicate_To = 1;   // Predicate Range Set between 0.6 and 1 (inclusive )
+    float average_FG3_PCT_home;
+    int numberOfRecords = 0;
+
+    //Reset Btree Index Node Access & Data Block Access  Counters
+    tree->resetIndexNodeAndDataBlockAccessCounter();
 
     //Capture Start Time for Elapsed time calcuation
     auto startClock = chrono::high_resolution_clock::now();
 
-    // B+ Tree based Search to rereive games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_Hhome <<<<< To be coded
+    // Search Based on FG_PCT_HOME = 0.5 using B+Tree
+    vector<Key_Records> searchResult = tree->search(FG_PCT_HOME_Predicate_From,true,FG_PCT_HOME_Predicate_To);
+    
+    // Find Average from qualified rows
+    tie(average_FG3_PCT_home, numberOfRecords) = tree->avgFG3_PCT_home(diskStorage,searchResult);
 
-    //Capture Start Time for Elapsed time calcuation
+    //Capture Stop Time for Elapsed time calcuation
     auto endClock = chrono::high_resolution_clock::now();
     chrono::duration< double > elapsed = endClock - startClock;
     chrono::nanoseconds elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
-    
-    cout << " Number of index nodes accessed                   = " << "???" << "\n";
-    cout << " Number of data blocks accessed                   = " << "???" << "\n";
-    cout << " Number of records qualified                      = " << "???" << "\n";
-    cout << " Average of FG3_PCT_home of qualified records     = " << "???" << "\n";
+
+    cout << " Number of Index nodes accessed                   = " << tree->getIndexNodeAccessCounter()  << "\n";
+    cout << " Number of Data blocks accessed                   = " << tree->getDataBocksAccessedCounter()  << "\n";
+    cout << " Number of Records qualified                      = " << numberOfRecords  << "\n";
+    cout << " Average of FG3_PCT_home of qualified records     = " << setprecision (4) << fixed  <<average_FG3_PCT_home  << "\n";
     cout << " Running Time (Elapsed in nanosecs)               = " << elapsedNs.count() << "\n\n";
-    cout << "*----------------------------------------------------------------------------------------------------*\n\n";    
+    cout << "*----------------------------------------------------------------------------------------------------*\n\n";      
     
     //Now do the experiment by  bruteforce linear scan method
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
     cout << "* Experiment 4: Retrieve the games with FG_PCT_home between 0.6 and 1 (B+ tree) and calculate average*\n";
-    cout << "                          of FG3_PCT_Home using Brute Force Linear Scan Method                       *\n";
+    cout << "*                         of FG3_PCT_Home using Brute Force Linear Scan Method                       *\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n";
 
     //Capture Start Time for Elapsed time calcuation
@@ -338,8 +373,9 @@ void experiment_4(Storage *diskStorage, unsigned int recordLength){
     RecordAddress recordAddress;
     Record *dataRecord; 
 
-    int numberOfRecords = 0, numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
-    float cumulative_FG3_PCT_home=0, average_FG3_PCT_home;
+    int numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
+    float cumulative_FG3_PCT_home=0;
+    numberOfRecords = 0;
 
     recordAddress.blockNumber = 1; // Start with first record at Block 1 : Offset 0
     recordAddress.offset = 0;
@@ -364,71 +400,86 @@ void experiment_4(Storage *diskStorage, unsigned int recordLength){
     if (numberOfRecords > 0) {  // Calculate average
         average_FG3_PCT_home = cumulative_FG3_PCT_home / numberOfRecords;
     }
-    //Capture Start Time for Elapsed time calcuation
+    //Capture Stop Time for Elapsed time calcuation
     endClock = chrono::high_resolution_clock::now();
     elapsed = endClock - startClock;
     elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
 
-    cout << " Number of data blocks accessed                   = " << totalNumberOfDataBlocksAccessed << "\n";
-    cout << " Number of records qualified                      = " << numberOfRecords << "\n";
-    cout << " Average of FG3_PCT_home of qualified records     = " << average_FG3_PCT_home << "\n";
+    cout << " Number of Data blocks accessed                   = " << totalNumberOfDataBlocksAccessed << "\n";
+    cout << " Number of Records qualified                      = " << numberOfRecords << "\n";
+    cout << " Average of FG3_PCT_home of qualified records     = " << setprecision (4) << fixed  << average_FG3_PCT_home << "\n";
     cout << " Running Time (Elapsed in nanosecs)               = " << elapsedNs.count() << "\n\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n\n";
 }
 
-void experiment_5(Storage *diskStorage, unsigned int recordLength){
+
+void experiment_5_Btree(Storage *diskStorage, Btree *tree, unsigned int recordLength){
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
-    cout << "*  Experiment 5: Retrieve the games with FG_PCT_home <= 0.35 (B+ tree) and delete qualifying records *\n";
-    cout << "                                       using B+ Tree Access Method                                   *\n";
+    cout << "*      Experiment 5: Retrieve the games with FG_PCT_home <= 0.35  and delete qualifying records      *\n";
+    cout << "*                                      using B+ Tree Access Method                                   *\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n";
     cout << "\n";
 
     float FG_PCT_HOME_Predicate = 0.35;  // Key Predicate value set to 0.35
+    int numberOfRecords = 0;
 
     //Capture Start Time for Elapsed time calcuation
     auto startClock = chrono::high_resolution_clock::now();
 
     // B+ Tree based Search to rereive games with FG_PCT_home = 0.5  and calculate average of FG3_PCT_Hhome <<<<< To be coded
+    vector<Key_Records> DeleteKeys = tree->search(0,true,0.35);
+    float value;
+    for (int i=0; i< DeleteKeys.size(); i++){
+        value = DeleteKeys[i].key_value;
+        tree->removeRecord(value);
+    }
 
-    //Capture Start Time for Elapsed time calcuation
+    //Capture Stop Time for Elapsed time calcuation
     auto endClock = chrono::high_resolution_clock::now();
     chrono::duration< double > elapsed = endClock - startClock;
     chrono::nanoseconds elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
     
-    cout << " Number of nodes updated                          = " << "???" << "\n";
-    cout << " Number of levels updated                         = " << "???" << "\n";
-    cout << " Number of records qualified for deletion         = " << "???" << "\n";    
-    cout << " Content of root node                             = " << "???" << "\n";
+    cout << " Number of Nodes of the new tree                  = " << tree->getNodeCount() << "\n";
+    cout << " Number of Levels of the new tree                 = " << tree->getLevels(tree->fetchRoot()) << "\n";
+    //cout << " Number of Records Deleted                        = " << "???" << "\n";    
+    cout << " Content of Root Node                             = " << tree->fetchRoot()->keys[0].key_value << "\n";
     cout << " Running Time (Elapsed in nanosecs)               = " << elapsedNs.count() << "\n\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n\n";    
     
-    //Now do the experiment by  bruteforce linear scan method
+}
+
+void experiment_5_BruteForce(Storage *diskStorage, Btree *tree, unsigned int recordLength){
+
+
+    float FG_PCT_HOME_Predicate = 0.35;  // Key Predicate value set to 0.35
+    int numberOfRecords = 0;
 
     cout << "*----------------------------------------------------------------------------------------------------*\n";
-    cout << "*  Experiment 5: Retrieve the games with FG_PCT_home <= 0.35 (B+ tree) and delete qualifying records *\n";
-    cout << "                                  using Brute Force Linear Scan Method                               *\n";
+    cout << "*      Experiment 5: Retrieve the games with FG_PCT_home <= 0.35  and delete qualifying records      *\n";
+    cout << "*                                 using Brute Force Linear Scan Method                               *\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n";
-
+    cout << " Number of Records in Storage before Deletion     = " << diskStorage->getTotalNumberOfRecords() << "\n";    
     //Capture Start Time for Elapsed time calcuation
-    startClock = chrono::high_resolution_clock::now();
+    auto startClock = chrono::high_resolution_clock::now();
 
     RecordAddress recordAddress;
     Record *dataRecord; 
 
-    int numberOfRecords = 0, numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
-    float cumulative_FG3_PCT_home=0, average_FG3_PCT_home;
-
+    int  numberOfDataBlocksAccessed = 0, totalNumberOfDataBlocksAccessed = 0 ;
+    numberOfRecords = 0;
     recordAddress.blockNumber = 1; // Start with first record at Block 1 : Offset 0
     recordAddress.offset = 0;
 
     tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord(recordAddress,recordLength);
     while (dataRecord != nullptr) {
+
         totalNumberOfDataBlocksAccessed +=  numberOfDataBlocksAccessed;            
 
         if (dataRecord->FG_PCT_home <= FG_PCT_HOME_Predicate ) {
-            diskStorage->deleteRecord(recordAddress,recordLength);
-            numberOfRecords++;
+            if (diskStorage->deleteRecord(recordAddress,recordLength)){                
+                numberOfRecords++;
+            }
         }
 
         recordAddress = diskStorage->getNextRecordAddress(recordAddress, recordLength);
@@ -439,19 +490,19 @@ void experiment_5(Storage *diskStorage, unsigned int recordLength){
             dataRecord = nullptr;
         }
     }
-    if (numberOfRecords > 0) {  // Calculate average
-        average_FG3_PCT_home = cumulative_FG3_PCT_home / numberOfRecords;
-    }
-    //Capture Start Time for Elapsed time calcuation
-    endClock = chrono::high_resolution_clock::now();
-    elapsed = endClock - startClock;
-    elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
 
-    cout << " Number of data blocks accessed                   = " << totalNumberOfDataBlocksAccessed << "\n";
-    cout << " Number of records qualified for deletion         = " << numberOfRecords << "\n";
+    //Capture Stop Time for Elapsed time calcuation
+    auto endClock = chrono::high_resolution_clock::now();
+    chrono::duration< double > elapsed = endClock - startClock;
+    chrono::nanoseconds elapsedNs = chrono::duration_cast< chrono::nanoseconds >( elapsed );
+
+    cout << " Number of Data blocks accessed                   = " << totalNumberOfDataBlocksAccessed << "\n";
+    cout << " Number of Records Deleted                        = " << numberOfRecords << "\n";
+    cout << " Number of Records in Storage after Deletion      = " << diskStorage->getTotalNumberOfRecords() << "\n";    
     cout << " Running Time (Elapsed in nanosecs)               = " << elapsedNs.count() << "\n\n";
     cout << "*----------------------------------------------------------------------------------------------------*\n\n";
 }
+
 
 void populateData(Storage *diskStorage, unsigned int recordLength, string gamesDataFile) {
     Record *dataRecord; 

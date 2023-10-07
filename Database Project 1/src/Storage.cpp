@@ -114,6 +114,11 @@ tuple<Record*, int> Storage::getRecord(RecordAddress recordAddress, unsigned int
     char *dataRecord;
     dataRecord  = StoragePtr + ((recordAddress.blockNumber -1) * BlockSize ) + recordAddress.offset;
 
+    if (recordAddress.blockNumber <= 0 || recordAddress.offset < 0) {
+        cout << "Error: Invalid Record Address passed! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
+        return {nullptr,0};
+
+    }
     if (recordAddress.blockNumber > MaxNumberOfBlocks){
         cout << "Error: Record Address to be fetched is beyond allocated memory ! Block " << recordAddress.blockNumber << " ; Offset " << recordAddress.offset << "\n";
         return {nullptr,0};
@@ -165,7 +170,7 @@ RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigne
        
     }
     catch(exception &e){
-        cout << "Error: Fetching NextRecor d failed!" << "\n";
+        cout << "Error: Fetching NextRecord failed!" << "\n";
         cout << e.what() << "\n";
     }
     
@@ -175,6 +180,6 @@ RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigne
 
 Storage::~Storage()  // Destructor method
 {
-//    delete this->StoragePtr;  
+    delete this->StoragePtr;  
     StoragePtr = nullptr;
 }

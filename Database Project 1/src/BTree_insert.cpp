@@ -12,8 +12,520 @@
 using namespace std;
 
 int recordCount=0;
+//Search keys in the Bplus Tree 
 
-void Btree::insert(int keyValue, RecordAddress recordAddress){
+
+void Btree::removeRecord(float key){
+    removeRecord(key, root);
+    int xyz = fixKeys(root);
+}
+// void Btree::removeFro(BTreeNode* parent, BTreeNode* node)
+// {
+//     int j = 0;
+//     for(j = 0; j< node->numKeysPerNode+1; j++)
+//     {
+//         if(node == parent->child[j])
+//         break;
+//     }
+
+//     for( int i =0; j<node->numKeysPerNode; j++)
+//     {
+//         parent->child[j] = parent->child[j+1];
+//     }
+//     parent->numKeysPerNode--;
+// }
+float Btree::fixKeys(BTreeNode *node)// Convert to float for actual experiment
+{
+    if(node->isleaf){
+    return node->keys[0].key_value;
+    }
+    for(int i=0; i<=node->numKeysPerNode; i++)
+    {
+        node->keys[i-1].key_value = fixKeys(node->child[i]);
+    }
+    return fixKeys(node->child[0]);
+}
+
+void Btree::treat_underflow(BTreeNode* node)
+{
+    BTreeNode* parent;
+    int x;
+    if(node == root)
+    {
+        if(node->numKeysPerNode<1)
+        {
+            if(node->child[0]==nullptr)
+            root = node->child[1];
+            else
+            root = node->child[0];
+            nodeCount--;
+
+        }
+    }
+    else
+    if(!node->isleaf && node->numKeysPerNode<(this->deg)/2)
+    {
+        pair<BTreeNode*, BTreeNode*> siblings = findAdjacentSiblings(root,node);
+        if(!( (tryBorrowing(siblings.first, node)) 
+        ||      (tryBorrowing(node,siblings.second)) ))
+        {
+            {   
+                findParentAndIndex(root, root, nullptr, node, parent, x);
+                if(siblings.first != nullptr)
+                {
+                    int oldKey = mergeInternalNodes(siblings.first, node);
+
+                    insertKey_Useless(node, parent->keys[x].key_value);
+                    updateParentKey2(parent, parent->keys[x].key_value, oldKey);
+                    remove_key_in_internal_node(parent,oldKey);
+                }
+                else if(siblings.second != nullptr)
+                {
+                    int oldKey = mergeInternalNodes(node, siblings.second);
+
+                    insertKey_Useless(node, parent->keys[x].key_value);
+                    updateParentKey2(parent, parent->keys[x].key_value, oldKey);
+                    remove_key_in_internal_node(parent, oldKey);
+                }
+
+                treat_underflow(parent);
+            }
+        }
+
+    }
+}
+// Helper function to insert a key with a pointer to a vector of RecordAddresses in a leaf node
+void  Btree::insert_in_leaf_node(BTreeNode* leafNode, float key, vector<RecordAddress>* addressVector) {
+    int insertIndex = -1; // Index to insert the new key
+
+    // Find the correct index to insert the new key
+    for (int i = 0; i <= leafNode->numKeysPerNode; ++i) {
+
+        if (key < leafNode->keys[i].key_value || leafNode->numKeysPerNode<=i) {
+
+            insertIndex = i;
+            break;
+        }
+    }
+
+    // Shift existing keys and address vectors to the right to make space for the new key
+    for (int i = leafNode->numKeysPerNode - 1; i >= insertIndex; --i) {
+        leafNode->keys[i + 1] = leafNode->keys[i];
+    }
+
+    // Insert the new key and associated pointer to the vector
+    leafNode->keys[insertIndex].key_value = key;
+    leafNode->keys[insertIndex].storage_array = *addressVector;
+    leafNode->numKeysPerNode++;
+}
+
+
+// Helper function to update the key in the parent node when a child node borrows
+void Btree::updateParentKey2(BTreeNode* parent, float oldKey, float newKey) {
+    for (int i = 0; i < parent->numKeysPerNode; ++i) {
+        if (parent->keys[i].key_value == oldKey) {
+            parent->keys[i].key_value = newKey;
+            break;
+        }
+    }
+}
+
+
+bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2) {
+    if(!node1 || !node2)
+    return false;
+    if(!node1->isleaf)
+    return tryBorrowingInternal(node1, node2);
+    bool rebalanced = false;
+    if (node1->numKeysPerNode < (this->deg + 1) / 2) {
+        if (node2->numKeysPerNode <= (this->deg + 1) / 2){
+            rebalanced = false;}
+        else {
+            if (node1->isleaf) {
+                insert_in_leaf_node(node1, node2->keys[0].key_value, &(node2->keys[0].storage_array));
+                float oldKey = node2->keys[0].key_value;
+                remove_key_in_leaf_node(node2, oldKey);
+                BTreeNode* parent = nullptr;
+                int index = -1;
+                findParentAndIndex(root, root, nullptr, node2, parent, index);
+                updateParentKey2(parent, oldKey, parent->keys[index].key_value);
+            } else {
+                insert_ChildNode_in_ParentNode(node1, node2->child[0], node2->keys[0].key_value);
+                float oldKey = node2->keys[0].key_value;
+                remove_key_in_internal_node(node2, oldKey);
+                BTreeNode* parent = nullptr;
+                int index = -1;
+                findParentAndIndex(root, root, nullptr, node2, parent, index);
+                updateParentKey2(parent, oldKey, parent->keys[index].key_value);
+            }
+            rebalanced = true;
+        }
+    } else {
+        if (node1->numKeysPerNode <= (this->deg + 1) / 2)
+            rebalanced = false;
+        else {
+           {
+                insert_in_leaf_node(node2, node1->keys[node1->numKeysPerNode - 1].key_value,
+                                    &(node1->keys[node1->numKeysPerNode - 1].storage_array));
+                int oldKey = node1->keys[node1->numKeysPerNode - 1].key_value;
+                remove_key_in_leaf_node(node1, oldKey);
+                BTreeNode* parent = nullptr;
+                int index = -1;
+                findParentAndIndex(root, root, nullptr, node1, parent, index);
+                updateParentKey2(parent, oldKey, node1->keys[node1->numKeysPerNode - 1].key_value);
+            } 
+            rebalanced = true;
+        }
+    }
+    return rebalanced;
+}
+
+bool Btree::tryBorrowingInternal(BTreeNode* node1, BTreeNode* node2) {
+    bool rebalanced = false;
+    if(node1==0 || node2==0)
+    return false;
+    if ((node1->numKeysPerNode < (this->deg) / 2 && node2->numKeysPerNode <= (this->deg ) / 2) 
+    || (node2->numKeysPerNode < (this->deg) / 2 && node1->numKeysPerNode <= (this->deg ) / 2))
+            rebalanced = false;
+        else 
+        {
+            if(node2->numKeysPerNode>this->deg/2)
+            {
+                insert_ChildNode_in_ParentNode(node1, node2->child[0], node2->keys[0].key_value);
+                int oldKey = node2->keys[0].key_value;
+                remove_key_in_internal_node(node2, oldKey);
+                
+                BTreeNode* parent = nullptr;
+                int index = -1;
+
+                findParentAndIndex(root, root, nullptr, node2, parent, index);
+                int siblingKey = parent->keys[index].key_value;
+                updateParentKey2(parent, parent->keys[0].key_value, oldKey);
+                node2->keys[0].key_value = siblingKey;
+                rebalanced = true;
+            }
+            if(node1->numKeysPerNode>this->deg/2)
+            {
+         
+                insert_ChildNode_in_ParentNode(node2, node1->child[node1->numKeysPerNode], node1->keys[node1->numKeysPerNode-1].key_value);
+                int oldKey = node1->keys[node1->numKeysPerNode-1].key_value;
+                remove_key_in_internal_node(node1, oldKey);
+                BTreeNode* parent = nullptr;
+                int index;
+
+                findParentAndIndex(root, root, nullptr, node1, parent, index);
+                int siblingKey = parent->keys[index].key_value;
+                updateParentKey2(parent, parent->keys[index].key_value, oldKey);
+                node2->keys[0].key_value = siblingKey;
+                rebalanced = true;
+            
+        
+            }
+        
+    
+    }
+    return rebalanced;
+}
+
+
+// Helper function to remove a key and its associated vector of RecordAddresses from a leaf node
+void  Btree::remove_key_in_leaf_node(BTreeNode* leafNode, float key) {
+    int keyIndex = -1; // Index of the key to be removed
+
+    // Find the index of the key to be removed
+    for (int i = 0; i < leafNode->numKeysPerNode; ++i) {
+        if (leafNode->keys[i].key_value == key) {
+            keyIndex = i;
+            break;
+        }
+    }
+
+    // If the key was not found, return (key not present in the node)
+    if (keyIndex == -1) {
+        return;
+    }
+
+    // Clear the associated vector of RecordAddresses
+    leafNode->keys[keyIndex].storage_array.clear();
+
+    // Shift keys to the left to fill the gap
+    for (int i = keyIndex; i < leafNode->numKeysPerNode - 1; ++i) {
+        leafNode->keys[i] = leafNode->keys[i + 1];
+    }
+
+    // Decrease the number of keys in the node
+    leafNode->numKeysPerNode--;
+}
+
+
+
+// Helper function to remove a key and its associated child pointer from an internal node
+void  Btree::remove_key_in_internal_node(BTreeNode* internalNode, float key) {
+    int keyIndex = 0; // Index of the key to be removed , -1 to act as a flag 
+
+    // Find the index of the key to be removed
+    while(keyIndex<internalNode->numKeysPerNode && internalNode->keys[keyIndex].key_value < key)
+    keyIndex++;
+
+    // If the key was not found, return (key not present in the node)
+    if (keyIndex == -1) {
+        return;
+    }
+
+    // Shift keys and child pointers to the left to fill the gaps
+    internalNode->child[keyIndex] = internalNode->child[keyIndex+1];
+
+    for (int i = keyIndex; i < internalNode->numKeysPerNode - 1; ++i) {
+        internalNode->keys[i] = internalNode->keys[i + 1];
+        internalNode->child[i + 1] = internalNode->child[i + 2];
+    }
+
+    // Decrease the number of keys and child pointers in the node
+    internalNode->numKeysPerNode--;
+}
+
+
+
+//Helper function to insert a child node (can be non-leaf/leaf) to parent node (non-leaf node). Function will be given
+//address of childnode, parentnode , key.
+void  Btree::insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, float key) {
+    if (parent == nullptr || child == nullptr || parent->isleaf) {
+        // Invalid input or parent is a leaf node
+        return;
+    }
+
+    int insertIndex = -1; // Index to insert the new child node
+    int i;
+    // Find the correct index to insert the new child node based on the key
+    for ( i = 0; i < parent->numKeysPerNode; ++i) {
+        if (key < parent->keys[i].key_value ) {
+            insertIndex = i;
+            break;
+        }
+    }
+    insertIndex = i;
+    // Shift existing child nodes and keys to the right to make space for the new child
+    for ( i = insertIndex; i < parent->numKeysPerNode-1; i++) {
+        parent->child[i+1] = parent->child[i];
+        parent->keys[i+1] = parent->keys[i];
+    }
+    parent->child[i+1] = parent->child[i];
+    
+
+    // Insert the new child node and respective key
+    parent->child[insertIndex + 1] = child;
+    parent->keys[insertIndex].key_value = key;
+    parent->numKeysPerNode++;   
+
+    
+}
+
+
+
+
+
+//Helper function to get back 2 node pointers adjacent to the non-leaf node given (divided into 2 functions )
+// Function A) to find the parent and index of the node
+void  Btree::findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index) {
+    if (!current) {
+        return;
+    }
+
+    if (current == nodeToFind) {
+        // 'current' is the node we're looking for
+        // 'prev' is its parent
+        parent = prev; // 'prev' is the parent
+        for (int i = 0; i <= parent->numKeysPerNode; ++i) {
+            if (parent->child[i] == nodeToFind) {
+                index = i;
+                break;
+            }
+        }
+        return;
+    }
+
+    // Recursively search in child nodes
+    for (int i = 0; i <= current->numKeysPerNode; ++i) {
+        findParentAndIndex(root, current->child[i], current, nodeToFind, parent, index);
+    }
+}
+
+//Function B) that uses FunctionA)
+std::pair<BTreeNode*, BTreeNode*>  Btree::findAdjacentSiblings(BTreeNode* root, BTreeNode* node) {
+    BTreeNode* leftSibling = nullptr;
+    BTreeNode* rightSibling = nullptr;
+
+    if (root == nullptr || node == nullptr || node->isleaf) {
+        // Invalid input or the node is a leaf node
+        return std::make_pair(leftSibling, rightSibling);
+    }
+
+    BTreeNode* parent = nullptr;
+    int index = -1;
+
+    // Start the search from the root
+    findParentAndIndex(root, root, nullptr, node, parent, index);
+
+    if (parent != nullptr) {
+        if (index > 0) {
+            // 'node' has a left sibling
+            leftSibling = parent->child[index - 1];
+        }
+
+        if (index < parent->numKeysPerNode) {
+            // 'node' has a right sibling
+            rightSibling = parent->child[index + 1];
+        }
+    }
+
+    return std::make_pair(leftSibling, rightSibling);
+}
+
+
+
+
+
+void Btree::removeRecord(float key, BTreeNode* node){
+
+    float keyToFind =  key;
+    
+    if(node->isleaf)
+    remove_key_in_leaf_node(node,keyToFind);  //remove_key_in_leaf_node(BTreeNode* leafNode, int key)
+    else
+    {
+        int i = 0;
+        for(i = 0; i <node->numKeysPerNode; i++)
+        {
+    
+            
+            if(node->keys[i].key_value > keyToFind)
+            {   
+                removeRecord(key, node->child[i]);
+                
+                // Condition of unbalanced child
+                if((node->child[i]->numKeysPerNode < (this->deg+1)/2    && node->child[i]->isleaf)
+                || (node->child[i]->numKeysPerNode < (this->deg)/2      && !(node->child[i]->isleaf)))
+                    {
+                        if(!((i>0 && tryBorrowing(node->child[i-1], node->child[i])) || 
+                        (i<node->numKeysPerNode && tryBorrowing(node->child[i],node->child[i+1]))))
+                        
+                        {
+                            if(i > 0)
+                            {
+                                
+                                remove_key_in_internal_node(node, mergeTwoNodes(node->child[i-1], node->child[i]));
+                            }
+                            else if(i < node->numKeysPerNode) // Case for 
+                            {
+                                ;
+                                remove_key_in_internal_node(node, mergeTwoNodes( node->child[i], node->child[i+1]));
+
+                            }
+                            treat_underflow(node);
+                        }
+                    }
+                return;
+               
+            }
+        }
+        i = node->numKeysPerNode;
+        removeRecord(key, node->child[i]);
+         if((node->child[i]->numKeysPerNode < (this->deg+1)/2    && node->child[i]->isleaf)
+        || (node->child[i]->numKeysPerNode < (this->deg)/2      && !(node->child[i]->isleaf)))
+        {
+            if(!((i>0 && tryBorrowing(node->child[i], node->child[i+1])) 
+            || (i<node->numKeysPerNode && tryBorrowing(node->child[i+1], node->child[i]))))
+            {
+                if(i > 0)
+                remove_key_in_internal_node(node, mergeTwoNodes(node->child[i-1], node->child[i]));
+                else if(i < node->numKeysPerNode)
+                remove_key_in_internal_node(node, mergeTwoNodes(node->child[i], node->child[i+1]));
+                treat_underflow(node);
+            }              
+        }
+
+    }
+    
+}
+
+
+
+
+// //Find parent 
+// BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
+//     BTreeNode *parent;
+//     if (current->isleaf || current->child[0]->isleaf){
+//         return nullptr;
+//     }
+//     for (int i=0; i < current->numKeysPerNode+1 ; i++){
+//         if (current->child[i] == child) {
+//             parent = current;
+//             return parent;
+//         }       
+//         else {
+//             parent = findParent(current->child[i], child);
+//                 if (parent != nullptr)
+//                     return parent;
+//         }
+//     }
+//     return parent;
+
+// }
+
+
+
+float Btree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
+{
+    if(node1->numKeysPerNode + node2->numKeysPerNode > this->deg)
+        return 0;
+    else
+        for(int i = 0; i<node2->numKeysPerNode && !node2->isleaf; i++)
+            {
+                insert_ChildNode_in_ParentNode(node1, node2->child[i], node2->keys[i].key_value);
+                if(i == node2->numKeysPerNode-1)
+                {
+                    node1->child[node1->numKeysPerNode + node2->numKeysPerNode + 1] = node2->child[node2->numKeysPerNode];
+                    node1->numKeysPerNode++;
+                    
+                }
+                node2->numKeysPerNode--;
+            } 
+        for(int i = 0; i<node2->numKeysPerNode && node2->isleaf; i++)
+            {
+                insert_in_leaf_node(node1, node2->keys[i].key_value, &(node2->keys[i].storage_array));
+                // node2->numKeysPerNode--;
+            }
+            int deleting_key = max(node1->keys[0].key_value,node2->keys[0].key_value);
+        // free(node2);
+    nodeCount--;
+    return deleting_key;
+}
+
+void Btree::insertKey_Useless(BTreeNode* node, float key)
+{
+    int i = 0;
+    while(key > node->keys[i].key_value)
+    i++;
+    for(int j = i+1; j <= node->numKeysPerNode; j++)
+        node->keys[j].key_value = node->keys[j-1].key_value;
+    node->keys[i].key_value = key;
+    node->numKeysPerNode++;
+}
+
+
+float Btree::mergeInternalNodes(BTreeNode* node1, BTreeNode* node2)
+{
+        int i = 0;
+        int j;
+        for(i = node1->numKeysPerNode, j = 0; j < node2->numKeysPerNode+1; i++, j++)
+                node1->child[i+1] = node2->child[j];  
+        for(i = node1->numKeysPerNode, j = 0; j < node2->numKeysPerNode; i++, j++, node1->numKeysPerNode++)
+                node1->keys[i] = node2->keys[j];   
+    nodeCount--;
+    return max(node1->keys[0].key_value,node2->keys[0].key_value);
+}
+
+void Btree::insert(float keyValue, RecordAddress recordAddress){
 
 
     Key_Records key = {keyValue};
@@ -68,7 +580,7 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
                 current->keys[j] = current->keys[j-1];
             }
             current->keys[i] = key; //insert the record  
-            cout <<"Test" <<current->keys[i].key_value <<"\n"; 
+            // cout <<"Test" <<current->keys[i].key_value <<"\n"; 
             current->numKeysPerNode++; //update the number of keys in current node
             current->child[current->numKeysPerNode]=current->child[current->numKeysPerNode-1]; //change pointer of old last position to new last position
             current->child[current->numKeysPerNode-1]=nullptr;
@@ -105,16 +617,16 @@ void Btree::insert(int keyValue, RecordAddress recordAddress){
             current->child[deg] = NULL;
 
             //Distribute records from the virtualNode between the 2 leaf nodes
-            cout<<"split 1"<<"\n";
+            // cout<<"split 1"<<"\n";
             for(i = 0; i < current->numKeysPerNode; i++){
                     current->keys[i] = virtualNode[i];
-                    cout << current->keys[i].key_value<<"\n";
+                    // cout << current->keys[i].key_value<<"\n";
             }
 
-            cout<<"split 2"<<"\n";
+            // cout<<"split 2"<<"\n";
             for(i = 0, j = current->numKeysPerNode; i < newLeafNode->numKeysPerNode; i++, j++){
                     newLeafNode->keys[i] = virtualNode[j];
-                    cout << newLeafNode->keys[i].key_value << "\n";
+                    // cout << newLeafNode->keys[i].key_value << "\n";
 
             }
 
@@ -151,12 +663,12 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
             current->keys[j] = current->keys[j-1];
             current->child[j+1] = current->child[j];
         }
-        cout<<"Adding to same parent"<<"\n";
+        // cout<<"Adding to same parent"<<"\n";
         current->keys[i] = key; //insert the key
         current->numKeysPerNode++; //increase current number of keys in the node
-        cout << "Testing Internal" << current->keys[i].key_value <<"\n";
+        // cout << "Testing Internal" << current->keys[i].key_value <<"\n";
         current->child[i+1] = child; //point the i+1th pointer to the newLeafNode (child)
-        cout<< "child: "<<  current->child[i+1];
+        // cout<< "child: "<<  current->child[i+1];
     }
 
     else { //if the parent node is full, split the node and create a new internal node
@@ -188,14 +700,14 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
         current ->numKeysPerNode = (deg +1)/2; //number of keys in the current node 
         newParent->numKeysPerNode = deg - (deg +1)/2; // number of keys in the new internal node 
 
-        cout<<"Parent split 1"<<"\n";
+        // cout<<"Parent split 1"<<"\n";
         for (i=0;i<current->numKeysPerNode;i++){
             current->keys[i] = virtualKeys[i];
             current->child[i] = virtualChildren[i];
         }
         current->child[current->numKeysPerNode] = virtualChildren[i];
 
-        cout<<"Parent split 2"<<"\n";
+        // cout<<"Parent split 2"<<"\n";
         j = current->numKeysPerNode+1;
         for(i=0;i<newParent->numKeysPerNode;i++){
             newParent->keys[i] = virtualKeys[j];
@@ -332,7 +844,7 @@ void Btree::printTree(BTreeNode *current)
 
   if (current != NULL) {
     for (int i = 0; i < current->numKeysPerNode; i++) {
-        float value = current->keys[i].key_value;
+        float value  = current->keys[i].key_value;
         cout << value <<" ";
     }
     cout << "\n";
@@ -353,7 +865,6 @@ BTreeNode *Btree::fetchRoot(){
 std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
     std::vector<Key_Records> search_result;
-    nodesAccessed = 0;
 
     //Tree is empty
     if(root == nullptr) {
@@ -365,7 +876,7 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
         BTreeNode* current = root;
 
         while (current ->isleaf == false){
-            nodesAccessed++;
+            indexNodesAccessed++;
             // the key to be inserted is larger than all keys in the internal node  
             if (key >= current->keys[current->numKeysPerNode-1].key_value){
                 current = current->child[current->numKeysPerNode]; // go to the next node
@@ -383,24 +894,26 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
         //leaf node 
         if(!rangeflag){ //Single key query
-            nodesAccessed++;
+            indexNodesAccessed++;
             for(int i = 0; i<current->numKeysPerNode; i++){
                 if (current->keys[i].key_value == key) {
-                    cout<<"Key Found!\n";
+                    // cout<<"Key Found!\n";
                     search_result.push_back(current->keys[i]);
-                    cout <<nodesAccessed<<"\n";
+                    // cout <<"Nodes Accessed:"<<nodesAccessed<<"\n";
                     return search_result;
                 }
             }
+            // cout <<"Key Not Found :("<<"\n";
+            //     return search_result;
         }
 
         else{ //Range query
-            nodesAccessed++;
+            indexNodesAccessed++;
             for (int i = 0; i < current->numKeysPerNode+1; i++) {
                 
                 if(i==current->numKeysPerNode){
                         current = current->child[i];
-                        nodesAccessed++;
+                        indexNodesAccessed++;
                         i = 0;
                 }
 
@@ -419,6 +932,7 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
             return search_result;
         }
     }
+    return {};
 }
 
 int Btree::getLevels(BTreeNode* current){
@@ -491,7 +1005,7 @@ BTreeNode* Btree::fetchSmallestLeaf(BTreeNode *current){
 
 }
 
-float Btree::avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result){
+tuple<float, int> Btree::avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result){
     int recordCount = 0;
     float sum = 0;
     float avg = 0;
@@ -502,15 +1016,15 @@ float Btree::avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_r
         for(int j=0;j<key.storage_array.size();j++){
             RecordAddress recordAddress= {key.storage_array[j].blockNumber, key.storage_array[j].offset};
             tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord(recordAddress, sizeof(Record));
+            
             if (dataRecord != nullptr){
-
                 sum += dataRecord->FG3_PCT_home;
                 recordCount++;
+                dataBocksAccessed += numberOfDataBlocksAccessed;
             }
         }
     }
-    cout<<recordCount<<"\n";
     avg = sum/recordCount;
-    return avg;
+    return {avg, recordCount};
 }
 

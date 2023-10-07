@@ -3,12 +3,30 @@
 #include <iostream>
 // #include "/Users/lakshya/Desktop/NTU CUrriculum/Year 3/Semester 1/SC3020/Project_1/SC3020-Database-Project-/Database Project 1/include/BplusTree.h"
 #include "../include/BplusTree.h"
+#include "../include/Storage.h"
 
 using namespace std; 
 
 void Btree::removeRecord(int key){
+    cout<<"Enter";
     removeRecord(key, root);
-};
+
+}
+
+
+int Btree::fixKeys(BTreeNode *node)// Convert to float for actual experiment
+{
+    cout << "fix";
+    if(node->isleaf){
+    return node->keys[0].key_value;
+    }
+    for(int i=0; i<=node->numKeysPerNode; i++)
+    {
+        node->keys[i-1].key_value = fixKeys(node->child[i]);
+    }
+    return fixKeys(node->child[0]);
+}
+
 
 void Btree::treat_underflow(BTreeNode* node)
 {
@@ -345,6 +363,7 @@ std::pair<BTreeNode*, BTreeNode*>  Btree::findAdjacentSiblings(BTreeNode* root, 
 
 
 void Btree::removeRecord(int key, BTreeNode* node){
+    cout<<key<<"Deleting key";
 
     int keyToFind =  key;
     
