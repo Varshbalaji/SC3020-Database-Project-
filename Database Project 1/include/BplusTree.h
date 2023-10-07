@@ -4,7 +4,10 @@
 #include <math.h>
 #include <vector>
 
-
+/**
+ * \struct Key_Records
+ * \brief Structure to hold key-value pairs associated with nodes.
+ */
 struct Key_Records{
     
     float key_value; 
@@ -12,14 +15,21 @@ struct Key_Records{
 
 };
 
-struct BTreeNode{
+/**
+ * \struct BTreeNode
+ * \brief Represents a B+ tree node.
+ */
 
-    bool isleaf;  //flag to indicate if leaf node or internal node
-    Key_Records * keys; // array of keys that stores keys associated with node 
-    int numKeysPerNode; // current number of  keys per node 
-    BTreeNode **child;
+struct BTreeNode {
+    bool isleaf;        ///< Flag to indicate if leaf node or internal node.
+    Key_Records *keys; ///< Array of keys that stores keys associated with the node.
+    int numKeysPerNode; ///< Current number of keys per node.
+    BTreeNode **child;  ///< Array of child nodes.
 
-    //Constructor 
+    /**
+     * \brief Constructor for the BTreeNode class.
+     * \param n Maximum number of keys in a node.
+     */
     BTreeNode(int n){ //n : maximum number of keys in a node 
         keys = new Key_Records[n];
         isleaf = true;
@@ -34,11 +44,17 @@ struct BTreeNode{
 
 };
 
+
+/**
+ * \class Btree
+ * \brief Represents a B+ tree data structure.
+ */
+
 class Btree
 {
 
     public:
-
+ 
 
         // Deletion Helper functions 
         void treat_underflow(BTreeNode *node);
@@ -63,6 +79,14 @@ class Btree
         float fixKeys(BTreeNode *node);//Convert to float for actual experiment
         void deletePointer(BTreeNode* parent, BTreeNode* node);
 
+            /**
+             * \brief Constructor for the Btree class.
+             *
+             * Initializes a new B+ tree with the specified degree and disk storage.
+             * \param diskStorage The storage system for the B+ tree.
+             * \param degree The degree of the B+ tree.
+             */
+
         Btree(Storage *diskStorage, int degree){
             root = nullptr;
             nodeCount =0;
@@ -74,6 +98,15 @@ class Btree
             // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
+
+
+            /**
+             * \brief Inserts a key-value pair into the B+ tree.
+             *
+             * Inserts the given key and value into the B+ tree.
+             * \param keyValue The key to insert.
+             * \param recordAddress The corresponding record address to insert.
+             */
 
         void insert(float keyValue, RecordAddress recordAddres);
 
@@ -129,14 +162,14 @@ class Btree
         // void printTree(BTreeNode* node, int level = 0);
         void print(BTreeNode* node);
         private:
-            int deg; //degree
-            BTreeNode* root;
-            int nodeCount;
+            int deg;                 ///< Degree of the B+ tree.
+            BTreeNode* root;         ///< Root node of the B+ tree.
+            int nodeCount;          ///< Number of nodes in the B+ tree.
         
-            Storage *diskStorage;
-            int recordCount;
-            int indexNodesAccessed;
-            int dataBocksAccessed;
+            Storage *diskStorage;  ///< Storage for the B+ tree.
+            int recordCount;       ///< Number of records in the B+ tree.
+            int indexNodesAccessed;///< Counter for index nodes accessed.
+            int dataBocksAccessed; ///< Counter for data blocks accessed.
 
 
 };

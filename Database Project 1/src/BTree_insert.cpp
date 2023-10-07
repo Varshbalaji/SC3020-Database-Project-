@@ -1,3 +1,9 @@
+/**
+ * @file BTree_insert.cpp
+ * @brief Implementation of the Btree class.
+ */
+
+
 #include "../include/Storage.h"
 #include <string>
 #include <vector>
@@ -12,28 +18,24 @@
 using namespace std;
 
 int recordCount=0;
-//Search keys in the Bplus Tree 
 
 
+
+/**
+ * @brief Removes a record with the specified key from the B+ tree.
+ * @param key The key of the record to be removed.
+ */
 void Btree::removeRecord(float key){
     removeRecord(key, root);
     int xyz = fixKeys(root);
 }
-// void Btree::removeFro(BTreeNode* parent, BTreeNode* node)
-// {
-//     int j = 0;
-//     for(j = 0; j< node->numKeysPerNode+1; j++)
-//     {
-//         if(node == parent->child[j])
-//         break;
-//     }
 
-//     for( int i =0; j<node->numKeysPerNode; j++)
-//     {
-//         parent->child[j] = parent->child[j+1];
-//     }
-//     parent->numKeysPerNode--;
-// }
+/**
+ * @brief Fixes the keys in the B+ tree after a record removal.
+ * @param node The node to fix the keys for.
+ * @return The new key value for the node.
+ */
+
 float Btree::fixKeys(BTreeNode *node)// Convert to float for actual experiment
 {
     if(node->isleaf){
@@ -45,6 +47,11 @@ float Btree::fixKeys(BTreeNode *node)// Convert to float for actual experiment
     }
     return fixKeys(node->child[0]);
 }
+
+/**
+ * @brief Handles underflow in a B+ tree node.
+ * @param node The node to treat for underflow.
+ */
 
 void Btree::treat_underflow(BTreeNode* node)
 {
@@ -94,7 +101,14 @@ void Btree::treat_underflow(BTreeNode* node)
 
     }
 }
-// Helper function to insert a key with a pointer to a vector of RecordAddresses in a leaf node
+
+/**
+ * @brief Inserts a key with a pointer to a vector of RecordAddresses in a leaf node.
+ * @param leafNode The leaf node to insert the key into.
+ * @param key The key to insert.
+ * @param addressVector Pointer to a vector of RecordAddresses associated with the key.
+ */
+
 void  Btree::insert_in_leaf_node(BTreeNode* leafNode, float key, vector<RecordAddress>* addressVector) {
     int insertIndex = -1; // Index to insert the new key
 
@@ -120,7 +134,14 @@ void  Btree::insert_in_leaf_node(BTreeNode* leafNode, float key, vector<RecordAd
 }
 
 
-// Helper function to update the key in the parent node when a child node borrows
+/**
+ * @brief Helper function to update the key in the parent node when a child node borrows
+ * 
+ * @param parent The parent node containing the key to be updated
+ * @param oldKey The old key value to be replaced
+ * @param newKey The new key value to replace the old key
+ */
+
 void Btree::updateParentKey2(BTreeNode* parent, float oldKey, float newKey) {
     for (int i = 0; i < parent->numKeysPerNode; ++i) {
         if (parent->keys[i].key_value == oldKey) {
@@ -130,6 +151,13 @@ void Btree::updateParentKey2(BTreeNode* parent, float oldKey, float newKey) {
     }
 }
 
+/**
+ * @brief Attempt to borrow a key from one node to another
+ * 
+ * @param node1 The first node (either leaf or internal)
+ * @param node2 The second node (either leaf or internal)
+ * @return true if a key was successfully borrowed, false otherwise
+ */
 
 bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2) {
     if(!node1 || !node2)
@@ -180,6 +208,15 @@ bool Btree::tryBorrowing(BTreeNode* node1, BTreeNode* node2) {
     return rebalanced;
 }
 
+
+/**
+ * @brief Attempt to borrow a key from one internal node to another internal node
+ * 
+ * @param node1 The first internal node
+ * @param node2 The second internal node
+ * @return true if a key was successfully borrowed, false otherwise
+ */
+
 bool Btree::tryBorrowingInternal(BTreeNode* node1, BTreeNode* node2) {
     bool rebalanced = false;
     if(node1==0 || node2==0)
@@ -228,7 +265,13 @@ bool Btree::tryBorrowingInternal(BTreeNode* node1, BTreeNode* node2) {
 }
 
 
-// Helper function to remove a key and its associated vector of RecordAddresses from a leaf node
+/**
+ * @brief Helper function to remove a key and its associated vector of RecordAddresses from a leaf node
+ * 
+ * @param leafNode The leaf node from which the key and associated data should be removed
+ * @param key The key value to be removed
+ */
+
 void  Btree::remove_key_in_leaf_node(BTreeNode* leafNode, float key) {
     int keyIndex = -1; // Index of the key to be removed
 
@@ -258,8 +301,13 @@ void  Btree::remove_key_in_leaf_node(BTreeNode* leafNode, float key) {
 }
 
 
+/**
+ * @brief Helper function to remove a key and its associated child pointer from an internal node
+ * 
+ * @param internalNode The internal node from which the key and child pointer should be removed
+ * @param key The key value to be removed
+ */
 
-// Helper function to remove a key and its associated child pointer from an internal node
 void  Btree::remove_key_in_internal_node(BTreeNode* internalNode, float key) {
     int keyIndex = 0; // Index of the key to be removed , -1 to act as a flag 
 
@@ -285,9 +333,14 @@ void  Btree::remove_key_in_internal_node(BTreeNode* internalNode, float key) {
 }
 
 
+/**
+ * @brief Helper function to insert a child node (can be non-leaf/leaf) to a parent node (non-leaf node)
+ * 
+ * @param parent The parent node to which the child node should be inserted
+ * @param child The child node to be inserted
+ * @param key The key associated with the child node
+ */
 
-//Helper function to insert a child node (can be non-leaf/leaf) to parent node (non-leaf node). Function will be given
-//address of childnode, parentnode , key.
 void  Btree::insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, float key) {
     if (parent == nullptr || child == nullptr || parent->isleaf) {
         // Invalid input or parent is a leaf node
@@ -321,11 +374,17 @@ void  Btree::insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child,
 }
 
 
+/**
+ * @brief Helper function to find the parent and index of a given node within a B-tree
+ * 
+ * @param root The root node of the B-tree
+ * @param current The current node being examined during the recursive search
+ * @param prev The parent node of the current node (initially nullptr)
+ * @param nodeToFind The node for which the parent and index need to be found
+ * @param parent A reference to a pointer to the parent node
+ * @param index A reference to an integer to store the index of the node within its parent's children
+ */
 
-
-
-//Helper function to get back 2 node pointers adjacent to the non-leaf node given (divided into 2 functions )
-// Function A) to find the parent and index of the node
 void  Btree::findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index) {
     if (!current) {
         return;
@@ -350,7 +409,14 @@ void  Btree::findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* 
     }
 }
 
-//Function B) that uses FunctionA)
+/**
+ * @brief Helper function to find adjacent siblings of a given node within a B-tree
+ * 
+ * @param root The root node of the B-tree
+ * @param node The node for which adjacent siblings need to be found
+ * @return A pair of pointers to the left and right siblings, respectively
+ */
+
 std::pair<BTreeNode*, BTreeNode*>  Btree::findAdjacentSiblings(BTreeNode* root, BTreeNode* node) {
     BTreeNode* leftSibling = nullptr;
     BTreeNode* rightSibling = nullptr;
@@ -384,6 +450,12 @@ std::pair<BTreeNode*, BTreeNode*>  Btree::findAdjacentSiblings(BTreeNode* root, 
 
 
 
+/**
+ * @brief Function to remove a record with a given key from the B-tree
+ * 
+ * @param key The key value associated with the record to be removed
+ * @param node The current node being examined (initially the root)
+ */
 
 void Btree::removeRecord(float key, BTreeNode* node){
 
@@ -450,29 +522,13 @@ void Btree::removeRecord(float key, BTreeNode* node){
 
 
 
-
-// //Find parent 
-// BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
-//     BTreeNode *parent;
-//     if (current->isleaf || current->child[0]->isleaf){
-//         return nullptr;
-//     }
-//     for (int i=0; i < current->numKeysPerNode+1 ; i++){
-//         if (current->child[i] == child) {
-//             parent = current;
-//             return parent;
-//         }       
-//         else {
-//             parent = findParent(current->child[i], child);
-//                 if (parent != nullptr)
-//                     return parent;
-//         }
-//     }
-//     return parent;
-
-// }
-
-
+/**
+ * @brief Function to merge two nodes into one node
+ * 
+ * @param node1 The first node to merge
+ * @param node2 The second node to merge
+ * @return The key value that triggered the merge
+ */
 
 float Btree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
 {
@@ -501,6 +557,14 @@ float Btree::mergeTwoNodes(BTreeNode* node1, BTreeNode* node2)
     return deleting_key;
 }
 
+
+/**
+ * @brief Helper function to insert a key into a node (used when node is already full)
+ * 
+ * @param node The node to which the key should be inserted
+ * @param key The key to insert
+ */
+
 void Btree::insertKey_Useless(BTreeNode* node, float key)
 {
     int i = 0;
@@ -511,6 +575,15 @@ void Btree::insertKey_Useless(BTreeNode* node, float key)
     node->keys[i].key_value = key;
     node->numKeysPerNode++;
 }
+
+
+/**
+ * @brief Merge two internal nodes into one internal node
+ * 
+ * @param node1 The first internal node to merge
+ * @param node2 The second internal node to merge
+ * @return The key value that triggered the merge
+ */
 
 
 float Btree::mergeInternalNodes(BTreeNode* node1, BTreeNode* node2)
@@ -524,6 +597,16 @@ float Btree::mergeInternalNodes(BTreeNode* node1, BTreeNode* node2)
     nodeCount--;
     return max(node1->keys[0].key_value,node2->keys[0].key_value);
 }
+
+
+
+
+/**
+ * @brief Insert a new key with an associated record address into the B-tree
+ * 
+ * @param keyValue The key value to insert
+ * @param recordAddress The record address associated with the key
+ */
 
 void Btree::insert(float keyValue, RecordAddress recordAddress){
 
@@ -649,9 +732,17 @@ void Btree::insert(float keyValue, RecordAddress recordAddress){
     }
 }
 
-//Helper Functions
 
-//Updates the parent node with the newly created child nodes and adds a parent if needed 
+
+
+/**
+ * @brief Helper function to update the parent node with newly created child nodes and add a parent if needed
+ * 
+ * @param key The key value to insert into the parent node
+ * @param current The current node that needs to be updated
+ * @param child The new child node to be added
+ */
+
 void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
 
     if(current->numKeysPerNode < deg){ //If the internal node is not full
@@ -744,7 +835,16 @@ void Btree::insertParent(Key_Records key, BTreeNode *current, BTreeNode *child){
 
 }
 
-//Find parent 
+
+
+/**
+ * @brief Helper function to find the parent of a child node within the B-tree
+ * 
+ * @param current The current node being examined (initially the root)
+ * @param child The child node for which to find the parent
+ * @return A pointer to the parent node
+ */
+
 BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
     cout<<"Entered findParent"<<"\n";
     BTreeNode *parent;
@@ -767,6 +867,14 @@ BTreeNode *Btree::findParent( BTreeNode *current, BTreeNode *child){
 
 }
 
+
+/**
+ * @brief Find the smallest key value in the right subtree starting from the given node.
+ * 
+ * @param current The current node to start the search from
+ * @return The smallest key value found in the right subtree
+ */
+
 Key_Records Btree::fetchSSKey(BTreeNode *current){
     
     // Find the smallest on the right subtree
@@ -777,70 +885,16 @@ Key_Records Btree::fetchSSKey(BTreeNode *current){
 
 }
 
-// Print the tree
+
+
+/**
+ * @brief Print the keys in the B-tree in ascending order.
+ * 
+ * @param current The current node to start printing from
+ */
+
 void Btree::printTree(BTreeNode *current)
-//{
-
-//     if (current == nullptr)
-//         return;
-
-//     queue<BTreeNode *> q;
-
-//     q.push(current);
-
-//     while (!q.empty())
-//     {
-//         int queueSize = q.size();
-//         for (int i = 0; i < queueSize; i++)
-//         {
-//           BTreeNode *node = q.front();
-//           for (int i = 0; i < node->numKeysPerNode; i++)
-//           {
-//             cout << node->keys[i].key_value<< "|";
-//             if (!node->isleaf)
-//             {
-//               q.push(node->child[i]);
-//             }
-//           }
-//           cout << "-----";
-//           if (!node->isleaf)
-//           {
-//             q.push(node->child[node->numKeysPerNode]);
-//           }
-//           q.pop();
-//           if(nodeCount-- == 0)
-//             return;
-//         }
-//         cout << endl;
-//     }
-// }
 {
-//     Record *dataRecord; 
-//     int numberOfDataBlocksAccessed = 0;
-
-//   if (current != NULL) {
-//     for (int i = 0; i < current->numKeysPerNode; i++) {
-//         float value = current->keys[i].key_value;
-//         if (current->isleaf) {
-//             cout << value <<" [ ";
-//             for(int j=0; j < current->keys[i].storage_array.size(); j++){
-//                 tie(dataRecord,numberOfDataBlocksAccessed) = diskStorage->getRecord( current->keys[i].storage_array[j],44);
-//                 if (dataRecord != nullptr) {
-//                     cout << "(" << dataRecord->gameDate <<"," <<dataRecord->teamID<<") ; ";
-//                 }
-//                 //cout << "(" << current->keys[i].storage_array[j].blockNumber <<"," <<current->keys[i].storage_array[j].offset<<") ; ";
-//             }
-//         cout << " ] \n";            
-//         }
-
-//     }
-    
-//     if (current->isleaf != true) {  
-//       for (int i = 0; i < current->numKeysPerNode + 1; i++) {
-//         printTree(current->child[i]);
-//       }
-//     }
-//   }
 
   if (current != NULL) {
     for (int i = 0; i < current->numKeysPerNode; i++) {
@@ -857,10 +911,30 @@ void Btree::printTree(BTreeNode *current)
   }
 
 }
-//Fetch root 
+
+
+/**
+ * @brief Fetch the root node of the B-tree.
+ * 
+ * @return A pointer to the root node of the B-tree
+ */
+
 BTreeNode *Btree::fetchRoot(){
     return root;
 }
+
+
+
+
+/**
+ * @brief Search for key(s) in the B-tree.
+ * 
+ * @param key The key value to search for
+ * @param rangeflag Set to true for range query, false for single key query
+ * @param key2 The second key value (used in range query)
+ * @return A vector of Key_Records that match the search criteria
+ */
+
 
 std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
 
@@ -935,6 +1009,14 @@ std::vector<Key_Records> Btree::search(float key, bool rangeflag, float key2){
     return {};
 }
 
+
+/**
+ * @brief Calculate the number of levels in the B-tree.
+ * 
+ * @param current The current node to start counting levels from
+ * @return The number of levels in the B-tree
+ */
+
 int Btree::getLevels(BTreeNode* current){
     if(current->isleaf == false)
         return getLevels(current->child[0])+1;
@@ -947,53 +1029,14 @@ int Btree::getLevels(BTreeNode* current){
 
 }
 
-// int main(){
-//     int key1 = 1;
-//     RecordAddress address1 = {1, 20};
-//     int key2 = 2;
-//     RecordAddress address2 = {2, 40};
-//     int key3 = 10;
-//     RecordAddress address3 = {4, 20};
-//     int key4 = 4;
-//     RecordAddress address4 = {3, 20};  //duplicate 
-//     int key5 = 5;
-//     RecordAddress address5 = {8, 20};
-//     int key6 = 6;
-//     RecordAddress address6 = {6, 20};
-//     int key7 = 9;
-//     RecordAddress address7 = {7, 20};
-//     int key8 = 3;
-//     RecordAddress address8 = {8, 40};
-//     int key9 = 7;
-//     RecordAddress address9 = {9, 20};
-//     int key10 = 0;
-//     RecordAddress address10 = {10, 20};
-//     int key11 = 0;
-//     RecordAddress address11 = {11, 40};
 
 
-//     Btree treeNode(60) ;
-//     treeNode.insert(key1, address1);
-//     treeNode.insert(key2, address2);
-//     treeNode.insert(key3, address3);
-//     treeNode.insert(key4, address4);
-//     treeNode.insert(key5, address5);
-//     treeNode.insert(key6, address6);
-//     treeNode.insert(key7, address7);
-//     treeNode.insert(key8, address8);
-//     treeNode.insert(key9, address9);
-//     treeNode.insert(key10, address10);
-//     treeNode.insert(key11, address11);
-//     cout << "TREE START..."<<endl;
-
-//     treeNode.printTree(treeNode.fetchRoot());
-
-//     // vector<Key_Records> searchResult = treeNode.search(8,false,10);
-//     // for(int i=0; i<searchResult.size(); i++){
-//     //     cout<<searchResult[i].key_value<<"\n";
-
-//     // }
-// }
+/**
+ * @brief Find the smallest leaf node in the right subtree starting from the given node.
+ * 
+ * @param current The current node to start the search from
+ * @return A pointer to the smallest leaf node in the right subtree
+ */
 
 BTreeNode* Btree::fetchSmallestLeaf(BTreeNode *current){
     
@@ -1004,6 +1047,16 @@ BTreeNode* Btree::fetchSmallestLeaf(BTreeNode *current){
     return current;
 
 }
+
+
+
+/**
+ * @brief Calculate the average FG3_PCT_home value for records associated with search results.
+ * 
+ * @param diskStorage A pointer to the disk storage
+ * @param search_result The search results containing keys and associated record addresses
+ * @return A tuple containing the average FG3_PCT_home value and the number of records used in the calculation
+ */
 
 tuple<float, int> Btree::avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result){
     int recordCount = 0;
