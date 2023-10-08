@@ -7,7 +7,7 @@
 
 struct Key_Records{
     
-    int key_value; 
+    float key_value; 
     vector<RecordAddress> storage_array;
 
 };
@@ -38,45 +38,44 @@ class Btree
 {
 
     public:
-        int deg; //degree
-        BTreeNode* root;
-        int nodeCount;
-        int nodesAccessed;
-        Storage *diskStorage;
-        int recordCount;
+
 
         // Deletion Helper functions 
         void treat_underflow(BTreeNode *node);
-        void removeRecord(int key, BTreeNode* node);
+        void removeRecord(float key, BTreeNode* node);
 
         bool tryBorrowing(BTreeNode* node1, BTreeNode* node2);
 
-        int mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
+        float mergeTwoNodes(BTreeNode* node1, BTreeNode* node2);
 
-        void insert_in_leaf_node(BTreeNode* leafNode, int key, vector<RecordAddress>* addressVector);
+        void insert_in_leaf_node(BTreeNode* leafNode, float key, vector<RecordAddress>* addressVector);
 
-        void remove_key_in_leaf_node(BTreeNode* leafNode, int key);
+        void remove_key_in_leaf_node(BTreeNode* leafNode, float key);
 
-        void remove_key_in_internal_node(BTreeNode* internalNode, int key);
+        void remove_key_in_internal_node(BTreeNode* internalNode, float key);
 
-        void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, int key);
+        void insert_ChildNode_in_ParentNode(BTreeNode* parent, BTreeNode* child, float key);
 
-        int mergeInternalNodes(BTreeNode* node1, BTreeNode* node2); 
-        void insertKey_Useless(BTreeNode* node, int key); 
+        float mergeInternalNodes(BTreeNode* node1, BTreeNode* node2); 
+        void insertKey_Useless(BTreeNode* node, float key); 
         bool tryBorrowingInternal(BTreeNode* node1, BTreeNode* node2);
 
+        float fixKeys(BTreeNode *node);//Convert to float for actual experiment
+        void deletePointer(BTreeNode* parent, BTreeNode* node);
 
-        Btree(Storage *diskStorage){
+        Btree(Storage *diskStorage, int degree){
             root = nullptr;
             nodeCount =0;
-            deg = 10;
             this->diskStorage = diskStorage;
-            unsigned int spaceForKeys = diskStorage->getBlockSize() - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
+            deg = degree;
+            indexNodesAccessed = 0;
+
+            // unsigned int spaceForKeys = diskStorage->getBlockSize() - sizeof(int) - sizeof(bool) - sizeof(BTreeNode *);
             // deg = floor(spaceForKeys / sizeof(Key_Records) + sizeof(BTreeNode *));
 
         } // constructor
 
-        void insert(int keyValue, RecordAddress recordAddres);
+        void insert(float keyValue, RecordAddress recordAddres);
 
         //Insert Helper Functions
         void insertParent(Key_Records key, BTreeNode *current, BTreeNode *child);
@@ -84,32 +83,61 @@ class Btree
         Key_Records fetchSSKey(BTreeNode *current);
         void printTree(BTreeNode *current);
         BTreeNode *fetchRoot();
-        void updateParentKey2(BTreeNode* parent, int oldKey, int newKey);
+        void updateParentKey2(BTreeNode* parent, float oldKey, float newKey);
         void findParentAndIndex(BTreeNode* root, BTreeNode* current, BTreeNode* prev, BTreeNode* nodeToFind, BTreeNode*& parent, int& index);
-        void removeRecord(int key);
+        void removeRecord(float key);
         std::pair<BTreeNode*, BTreeNode*>  findAdjacentSiblings(BTreeNode* root, BTreeNode* node);
 
         BTreeNode  *fetchSmallestLeaf(BTreeNode *current);
 
         //search
         std::vector<Key_Records> search(float key, bool rangeflag, float key2); // Search for a key in the B+ tree and return associated values
-        float avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result);
+        tuple<float, int> avgFG3_PCT_home( Storage *diskStorage, vector<Key_Records> search_result);
 
         int getDegree(){
             return deg;
-            };
+        };
+
+        int getNodeCount(){
+            return nodeCount;
+        };            
+        int getRecordCount(){
+            return recordCount;
+        }; 
 
         int getLevels(BTreeNode* current);
 
         void setRoot(BTreeNode* newRoot) {
             root = newRoot;
-            };
+        };
 
         BTreeNode* getRoot() const {
             return root;
-            };
+        };
+        void resetIndexNodeAndDataBlockAccessCounter(){
+            indexNodesAccessed = 0;
+            dataBocksAccessed = 0;
+        }
+
+        int getIndexNodeAccessCounter() {
+            return indexNodesAccessed;
+        }
+
+        int getDataBocksAccessedCounter() {
+            return dataBocksAccessed;
+        }
         // void printTree(BTreeNode* node, int level = 0);
         void print(BTreeNode* node);
+        private:
+            int deg; //degree
+            BTreeNode* root;
+            int nodeCount;
+        
+            Storage *diskStorage;
+            int recordCount;
+            int indexNodesAccessed;
+            int dataBocksAccessed;
+
 
 };
 
