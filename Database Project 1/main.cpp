@@ -6,7 +6,7 @@
 #include <iomanip>
 
 #include "src/Storage.cpp"
-#include "src/BTree_insert.cpp"
+#include "src/BTree.cpp"
 // #include "C:\Users\varsh\OneDrive\C_Projects\Linked list\SC3020-Database-Project-\Database Project 1\src\BTree_delete.cpp"
 
 void experiment_1(Storage *diskStorage,  unsigned int recordLength, string gamesDataFile, unsigned int blockSize);
@@ -17,8 +17,6 @@ void experiment_4(Storage *diskStorage, Btree *tree,  unsigned int recordLength)
 
 void experiment_5_Btree(Storage *diskStorage,Btree *tree, unsigned int recordLength);
 void experiment_5_BruteForce(Storage *diskStorage,Btree *tree, unsigned int recordLength);
-
-
 
 
 void populateData(Storage *diskStorage, unsigned int recordLength, string gamesDataFile);
@@ -85,7 +83,7 @@ int main() {
     // Allocate new Disk Storage as Memory
     Storage diskStorageNew{memorySizeMB*1024*1024, blockSize};
 
-    cout<< "RE-RUNNING EXPERIMENT 1 TO RE-POPULATE DATA IN THE STORAGE FOR EXPERIMENT 5";
+    cout<< "RE-RUNNING EXPERIMENT 1 TO RE-POPULATE DATA IN THE STORAGE FOR EXPERIMENT 5"<<"\n";
 
     experiment_1(&diskStorageNew, recordLength, gamesDataFile, blockSize);
 

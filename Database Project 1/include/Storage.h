@@ -21,7 +21,7 @@ struct Record{
     float FG3_PCT_home;
     int AST_home;
     int REB_home;
-    int HOME_TEAM_WINS;
+    bool HOME_TEAM_WINS;
 
 };
 
@@ -68,8 +68,8 @@ class Storage
         unsigned int BlockSize; // size of each block
         unsigned int StorageSize; // max memory size of Storage  
         char *MaxAddress;
-        int CurrentFreeBlockNumber;
-        short CurrentFreeBlockOffset;
+        int CurrentFreeBlockNumber;  // stores the free block in which next record can be stored 
+        short CurrentFreeBlockOffset; // offset within the current free block where free space is present 
         unsigned int TotalNumberOfRecords;
         unsigned int MaxNumberOfBlocks;
 

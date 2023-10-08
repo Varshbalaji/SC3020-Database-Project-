@@ -44,7 +44,7 @@ RecordAddress Storage::insertRecord(unsigned int recordSize, void *record){
             throw invalid_argument("No More Free Space!");
         }
         recordAddress = {CurrentFreeBlockNumber, CurrentFreeBlockOffset};  // Save record address before spanning        
-        splitRecordSize = BlockSize - CurrentFreeBlockOffset; // Fill splitRecordSize dataRecord in current block free space
+        splitRecordSize = BlockSize - CurrentFreeBlockOffset; // Fill splitRecordSize dataRecord in current block free space (part of record to be stored in free space)
         spillOverRecordSize = recordSize - splitRecordSize;   // Fill spillOverRecordSize  dataRecord in next block to span across
 
         blockRecordAddress = StoragePtr + ( (CurrentFreeBlockNumber - 1) * BlockSize) + CurrentFreeBlockOffset;
@@ -110,6 +110,7 @@ bool Storage::deleteRecord(RecordAddress recordAddress,unsigned int recordSize){
     }
 }
 
+//Fetch the current record 
 tuple<Record*, int> Storage::getRecord(RecordAddress recordAddress, unsigned int recordSize){
     char *dataRecord;
     dataRecord  = StoragePtr + ((recordAddress.blockNumber -1) * BlockSize ) + recordAddress.offset;
@@ -141,6 +142,7 @@ tuple<Record*, int> Storage::getRecord(RecordAddress recordAddress, unsigned int
     
 }
 
+//Fetch the address of the next record
 RecordAddress Storage::getNextRecordAddress(RecordAddress recordAddress, unsigned int recordSize){
     RecordAddress nextRecordAddress;
     bool exitNextRecordSearch = false; //flag for exiting the search for a next record (we search fort he next record beacuse of the possibility of deleted records in between)
